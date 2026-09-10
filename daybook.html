@@ -601,20 +601,26 @@ function normaliseDay(id, raw){
   };
 }
 
+// A capability call that never settles would look exactly like a dead
+// button, so give every write a deadline.
+function within(promise, ms){
+  let timer;
+  return Promise.race([
+    promise.finally(() => clearTimeout(timer)),
+    new Promise((_, reject) => { timer = setTimeout(() => reject({code:'timed out', message:'no answer from the database'}), ms); })
+  ]);
+}
+
 async function persistDay(id){
   const d = state.days[id];
   if(!d) return;
-  const body = {label:d.label, metrics:d.metrics, entries:d.entries};
-  if(store){
-    await store.doc('days/' + id).set(body);
-  } else {
-    saveLocal();
-    render();
-  }
+  saveLocal();                                 // a local copy, whatever the store does
+  if(!store){ render(); return; }
+  await within(store.doc('days/' + id).set({label:d.label, metrics:d.metrics, entries:d.entries}), 12000);
 }
 async function persistFoods(){
-  if(store) await store.doc('library/foods').set({foods: state.foods});
-  else saveLocal();
+  saveLocal();
+  if(store) await within(store.doc('library/foods').set({foods: state.foods}), 12000);
 }
 
 function saveLocal(){
@@ -639,7 +645,6 @@ function rememberFood(entry){
   for(const k of MACROS) food[k] = num(entry[k]);
   const at = state.foods.findIndex(f => (f.name || '').toLowerCase() === entry.name.toLowerCase());
   if(at >= 0) state.foods[at] = food; else state.foods.push(food);
-  persistFoods();
 }
 
 /* ---------- events ---------- */
@@ -672,12 +677,14 @@ $('estimate').onclick = estimateMacros;
 $('close').onclick = () => $('sheet').close();
 $('cancel').onclick = () => { resetForm(); applyKind(); };
 $('day').onchange = () => { current = $('day').value; applyKind(); };
-$('add').onclick = () => {
+$('add').onclick = async () => {
   const id = todayId();
-  const fresh = !state.days[id];
-  ensureDay(id);
+  if(!state.days[id]){
+    ensureDay(id);
+    try{ await persistDay(id); }
+    catch(err){ toast('Could not start today: ' + ((err && (err.code || err.message)) || 'unknown')); }
+  }
   openSheet(id);
-  if(fresh) persistDay(id).catch(() => toast('Could not start today. Check your connection.'));
 };
 $('expand').onclick = () => { folded.clear(); render(); };
 $('collapse').onclick = () => { dayIds().forEach(id => folded.add(id)); render(); };
@@ -769,6 +776,7 @@ $('entry').onsubmit = async e => {
   folded.delete(d.id);
   try{
     await persistDay(d.id);
+    persistFoods().catch(err => toast('Food list not saved: ' + ((err && (err.code || err.message)) || 'unknown')));
   }catch(err){
     toast('Not saved: ' + ((err && (err.code || err.message)) || 'unknown error'));
     render();
