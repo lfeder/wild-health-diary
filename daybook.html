@@ -113,7 +113,6 @@ tr.item:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .portion p{margin:5px 0 0;white-space:pre-wrap;max-width:65ch}
 .whoop{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:12px}
 tr.day .whoop{color:var(--ink);font-weight:600}
-.est{color:var(--flag)}
 .empty{color:var(--ink-3);font-style:italic}
 .blank{padding:44px 12px;text-align:center;color:var(--ink-2)}
 .blank strong{display:block;font-family:var(--display);font-size:18px;color:var(--ink);margin-bottom:4px}
@@ -256,7 +255,6 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
         <label class="field">Carbs g<input id="carbs" type="number" min="0" step="any"></label>
         <label class="field">Fat g<input id="fat" type="number" min="0" step="any"></label>
       </div>
-      <label class="check"><input id="estimated" type="checkbox" checked> Mark these as an estimate</label>
     </fieldset>
 
     <label class="field">Notes<textarea id="notes" rows="2" placeholder="Portion, ingredients, how it felt"></textarea></label>
@@ -338,9 +336,9 @@ function whoopText(d, type){
   if((!type || type === 'Exercise') && d.metrics.strain != null) out.push(d.metrics.strain + ' strain');
   return out.join(' · ');
 }
-function macroCells(values, estimated){
+function macroCells(values){
   return MACROS.map((k,i) =>
-    `<td class="num${estimated ? ' est' : ''}">${estimated ? '~' : ''}${Math.round(values[k]).toLocaleString()}${i ? 'g' : ''}</td>`
+    `<td class="num">${Math.round(values[k]).toLocaleString()}${i ? 'g' : ''}</td>`
   ).join('');
 }
 
@@ -365,7 +363,6 @@ function renderDay(id){
   const d = state.days[id];
   const open = !folded.has(id);
   const sum = totals(d.entries);
-  const estimated = d.entries.some(e => e.type === 'Food' && e.estimated);
   const head = `<tr class="day">
     <th scope="row"><span class="dayhead">
       <button class="addhere" data-new="${esc(id)}" aria-label="Add an entry to ${esc(d.label)}" title="Add an entry to ${esc(d.label)}">＋</button>
@@ -373,18 +370,21 @@ function renderDay(id){
     </span></th>
     <td colspan="2"><span class="rest">${esc(restText(d))}</span><span class="sub">${d.entries.length} entries · day total</span></td>
     <td class="whoop">${esc(whoopText(d))}</td>
-    ${macroCells(sum, estimated)}
+    ${macroCells(sum)}
   </tr>`;
   if(!open) return head;
 
   const rows = d.entries.slice().sort((a,b) => String(a.time).localeCompare(String(b.time))).map(e => {
     const food = e.type === 'Food';
     const label = {Sleep:'Wake', Exercise:'Exercise', Work:'Work', Food:'Food'}[e.type] || e.type;
+    const helpings = num(e.servings) === 1 ? '' : num(e.servings) + ' servings';
     const detail = food
-      ? `<div class="portion">${e.notes ? `<details><summary>${num(e.servings)} serving${num(e.servings) === 1 ? '' : 's'}${e.estimated ? ' · estimated' : ''}</summary><p>${esc(e.notes)}</p></details>` : `${num(e.servings)} serving${num(e.servings) === 1 ? '' : 's'}${e.estimated ? ' · estimated' : ''}`}</div>`
+      ? (e.notes
+          ? `<div class="portion"><details><summary>${esc(helpings || 'details')}</summary><p>${esc(e.notes)}</p></details></div>`
+          : helpings ? `<div class="portion">${esc(helpings)}</div>` : '')
       : e.notes ? `<div class="portion"><p>${esc(e.notes)}</p></div>` : '';
     const cells = food
-      ? macroCells(Object.fromEntries(MACROS.map(k => [k, num(e[k]) * num(e.servings || 1)])), e.estimated)
+      ? macroCells(Object.fromEntries(MACROS.map(k => [k, num(e[k]) * num(e.servings || 1)])))
       : '<td></td><td></td><td></td><td></td>';
     return `<tr class="item" tabindex="0" data-day="${esc(id)}" data-edit="${esc(e.id)}" aria-label="Edit ${esc(e.name)} at ${esc(e.time)}">
       <td class="kind">${esc(label)}</td>
@@ -483,7 +483,6 @@ function fillFromLibrary(){
   if(!match) return;
   for(const k of MACROS) $(k).value = num(match[k]);
   if(match.notes) $('notes').value = match.notes;
-  $('estimated').checked = !!match.estimated;
   showEstimateNote('Filled in from the last time you logged this.', false);
 }
 
@@ -503,7 +502,7 @@ function resetForm(){
   editing = null;
   $('entry').reset();
   $('kind').value = 'Food';
-  $('time').value = new Date().toTimeString().slice(0,5);
+  $('time').value = quarterHour();
   $('sheet-title').textContent = 'Add to your day';
   $('cancel').hidden = true;
   $('remove').hidden = true;
@@ -557,7 +556,6 @@ async function estimateMacros(){
     for(const k of MACROS) if(Number.isFinite(Number(reply[k]))) $(k).value = Number(reply[k]);
     if(Number.isFinite(Number(reply.servings)) && Number(reply.servings) > 0) $('servings').value = Number(reply.servings);
     if(typeof reply.name === 'string' && reply.name.trim()) $('name').value = reply.name.trim();
-    $('estimated').checked = true;
     if(typeof reply.assumptions === 'string' && reply.assumptions.trim()){
       $('notes').value = extra ? extra + '\n' + reply.assumptions.trim() : reply.assumptions.trim();
     }
@@ -585,6 +583,13 @@ async function estimateMacros(){
 }
 
 /* ---------- storage ---------- */
+// Meals get logged on the quarter hour far more often than not.
+function quarterHour(){
+  const now = new Date();
+  now.setSeconds(0, 0);
+  now.setMinutes(Math.round(now.getMinutes() / 15) * 15);
+  return now.toTimeString().slice(0, 5);
+}
 function todayId(){
   const now = new Date();
   return [now.getFullYear(), String(now.getMonth()+1).padStart(2,'0'), String(now.getDate()).padStart(2,'0')].join('-');
@@ -601,13 +606,16 @@ function ensureDay(id){
   return state.days[id];
 }
 
+// Snapshots and everything inside them are frozen, so this must be a deep
+// copy. Keeping the snapshot's own array makes the next push throw
+// "object is not extensible" and the save dies before it reaches the store.
 function normaliseDay(id, raw){
   const d = raw || {};
   return {
     id,
     label: typeof d.label === 'string' && d.label ? d.label : id,
     metrics: (d.metrics && typeof d.metrics === 'object') ? {...d.metrics} : {},
-    entries: Array.isArray(d.entries) ? d.entries : []
+    entries: Array.isArray(d.entries) ? d.entries.map(e => ({...e})) : []
   };
 }
 
@@ -651,7 +659,7 @@ function loadLocal(){
 }
 
 function rememberFood(entry){
-  const food = {name:entry.name, notes:entry.notes, estimated:!!entry.estimated};
+  const food = {name:entry.name, notes:entry.notes};
   for(const k of MACROS) food[k] = num(entry[k]);
   const at = state.foods.findIndex(f => (f.name || '').toLowerCase() === entry.name.toLowerCase());
   if(at >= 0) state.foods[at] = food; else state.foods.push(food);
@@ -737,7 +745,6 @@ function editEntry(dayId, entryId){
   $('notes').value = entry.notes || '';
   $('servings').value = entry.servings != null ? entry.servings : 1;
   for(const k of MACROS) $(k).value = entry[k] != null ? entry[k] : '';
-  $('estimated').checked = !!entry.estimated;
   $('sheet-title').textContent = 'Edit entry';
   $('cancel').hidden = false;
   $('remove').hidden = false;
@@ -773,7 +780,6 @@ $('entry').onsubmit = async e => {
   if(kind === 'Food'){
     for(const k of MACROS) entry[k] = num($(k).value);
     entry.servings = num($('servings').value) || 1;
-    entry.estimated = $('estimated').checked;
   }
   for(const [key,f] of WHOOP[kind] || []){
     const v = $(f).value;
@@ -850,7 +856,7 @@ applyKind();
     });
     db.doc('library/foods').onSnapshot(snap => {
       const body = snap.data();
-      state.foods = body && Array.isArray(body.foods) ? body.foods : [];
+      state.foods = body && Array.isArray(body.foods) ? body.foods.map(f => ({...f})) : [];
       refreshPool();
     }, () => {});
   } else {
