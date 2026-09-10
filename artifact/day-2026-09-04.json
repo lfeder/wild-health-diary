@@ -1,0 +1,87 @@
+{
+ "label": "Friday · Sep 4",
+ "metrics": {
+  "recovery": 79
+ },
+ "entries": [
+  {
+   "time": "07:00",
+   "type": "Sleep",
+   "name": "Wake up",
+   "notes": "WHOOP recovery 79%.",
+   "id": "import-friday-0"
+  },
+  {
+   "type": "Food",
+   "time": "08:00",
+   "name": "Tea with a little whole milk",
+   "calories": 30,
+   "protein": 2,
+   "carbs": 2,
+   "fat": 2,
+   "notes": "Big mug of tea and a little milk.\nAssumes about ¼ cup whole milk.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-friday-1"
+  },
+  {
+   "type": "Food",
+   "time": "10:00",
+   "name": "Airport eggs & beans",
+   "calories": 180,
+   "protein": 12,
+   "carbs": 14,
+   "fat": 8,
+   "servings": 1,
+   "estimated": true,
+   "notes": "Small amount of eggs and beans at airport; assumes 1 egg and ⅓ cup beans. Approximate working portion; edit to match what you ate.",
+   "id": "import-friday-2"
+  },
+  {
+   "type": "Food",
+   "time": "12:00",
+   "name": "Flight meal: burger patty, nuts & tea",
+   "calories": 470,
+   "protein": 32,
+   "carbs": 10,
+   "fat": 34,
+   "servings": 1,
+   "estimated": true,
+   "notes": "Fly to HI. Cheeseburger patty, mustard, pickle slices, tea and milk, some nuts. Assumes one patty with cheese and 1 oz nuts. Approximate working portion; edit to match what you ate.",
+   "id": "import-friday-3"
+  },
+  {
+   "time": "16:00",
+   "type": "Exercise",
+   "name": "Tennis",
+   "notes": "",
+   "id": "import-friday-4"
+  },
+  {
+   "type": "Food",
+   "time": "19:00",
+   "name": "Two Beyond patties, cheese & small salad",
+   "calories": 650,
+   "protein": 45,
+   "carbs": 18,
+   "fat": 46,
+   "notes": "Two Beyond burger patties, cheese, small salad with balsamic vinaigrette and water.\nIllustrative portions; verify patty package and cheese/dressing quantities.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-friday-5"
+  },
+  {
+   "type": "Food",
+   "time": "20:30",
+   "name": "Grapes & cottage cheese",
+   "calories": 140,
+   "protein": 13,
+   "carbs": 14,
+   "fat": 4,
+   "notes": "Few grapes and some cottage cheese.\nAssumes ½ cup cottage cheese and a few grapes.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-friday-6"
+  }
+ ]
+}

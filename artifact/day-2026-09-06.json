@@ -1,0 +1,115 @@
+{
+ "label": "Sunday · Sep 6",
+ "metrics": {
+  "recovery": 67,
+  "rhr": 54,
+  "strain": 14.5
+ },
+ "entries": [
+  {
+   "time": "06:30",
+   "type": "Sleep",
+   "name": "Wake up · restorative sleep",
+   "notes": "WHOOP 67%, a lot of restorative sleep. RHR 54, up from a low of 49 a few days ago; I think driven by playing tennis.",
+   "id": "import-sunday-0"
+  },
+  {
+   "type": "Food",
+   "time": "08:00",
+   "name": "Tea with a little whole milk",
+   "calories": 30,
+   "protein": 2,
+   "carbs": 2,
+   "fat": 2,
+   "notes": "Assumes about ¼ cup whole milk.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-sunday-1"
+  },
+  {
+   "type": "Food",
+   "time": "11:00",
+   "name": "Smoked salmon & honey mustard",
+   "calories": 200,
+   "protein": 24,
+   "carbs": 8,
+   "fat": 8,
+   "notes": "Decent amount of smoked salmon and a little honey mustard.\nUses your Tuesday estimate of about 200 calories.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-sunday-2"
+  },
+  {
+   "type": "Food",
+   "time": "13:00",
+   "name": "Usual salad",
+   "calories": 300,
+   "protein": 13,
+   "carbs": 27,
+   "fat": 17,
+   "notes": "Small salad with soybeans, quinoa, peppers, a few grapes, feta and champagne vinaigrette.\nWorking portion: greens, ½ cup soybeans, ¼ cup cooked quinoa, peppers, a few grapes, ½ oz feta, 1 tbsp champagne vinaigrette.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-sunday-3"
+  },
+  {
+   "type": "Food",
+   "time": "13:00",
+   "name": "Turkey chili",
+   "calories": 100,
+   "protein": 9,
+   "carbs": 10,
+   "fat": 3,
+   "servings": 1,
+   "estimated": true,
+   "notes": "Small amount; assumes ½ cup. Approximate working portion; edit to match what you ate.",
+   "id": "import-sunday-4"
+  },
+  {
+   "type": "Food",
+   "time": "13:00",
+   "name": "Unsweetened matcha latte with whole milk",
+   "calories": 150,
+   "protein": 8,
+   "carbs": 12,
+   "fat": 8,
+   "notes": "No sugar in matcha; milk amount not specified.\nAssumes 1 cup whole milk.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-sunday-5"
+  },
+  {
+   "time": "15:45",
+   "type": "Exercise",
+   "name": "Tennis",
+   "notes": "Reported strain 14.5.",
+   "id": "import-sunday-6"
+  },
+  {
+   "type": "Food",
+   "time": "18:30",
+   "name": "Tuna tartare, avocado, squash & grilled chicken",
+   "calories": 550,
+   "protein": 65,
+   "carbs": 22,
+   "fat": 23,
+   "notes": "Assumes 3 oz tuna, 4 oz chicken, ¼ avocado, 1 cup squash and tomatoes, some oil.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-sunday-7"
+  },
+  {
+   "type": "Food",
+   "time": "20:00",
+   "name": "Grapes & cottage cheese",
+   "calories": 140,
+   "protein": 13,
+   "carbs": 14,
+   "fat": 4,
+   "notes": "Assumes ½ cup cottage cheese and a few grapes.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-sunday-8"
+  }
+ ]
+}

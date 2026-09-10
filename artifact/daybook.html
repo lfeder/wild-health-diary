@@ -1,0 +1,719 @@
+<title>Daybook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap">
+<style>
+:root{
+  --ground:#f6f8f3; --surface:#ffffff; --band:#eaefe3; --sunk:#f1f4ec;
+  --ink:#22332b; --ink-2:#5f6d62; --ink-3:#8b978c;
+  --line:#dce2d6; --line-strong:#c8d2c0;
+  --accent:#2f5644; --accent-ink:#ffffff; --accent-soft:#dfe8d8;
+  --flag:#a2603a;
+  --focus:#6f9a7c;
+  --shadow:0 1px 2px rgba(34,51,43,.06),0 8px 24px rgba(34,51,43,.08);
+  --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  --display:"Newsreader",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#11150f; --surface:#191e17; --band:#212819; --sunk:#1d231b;
+    --ink:#e7ece1; --ink-2:#a3afa0; --ink-3:#7c8a7c;
+    --line:#2c342a; --line-strong:#3b453a;
+    --accent:#8fb894; --accent-ink:#111a13; --accent-soft:#2a3527;
+    --flag:#d79a6e;
+    --focus:#8fb894;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#11150f; --surface:#191e17; --band:#212819; --sunk:#1d231b;
+  --ink:#e7ece1; --ink-2:#a3afa0; --ink-3:#7c8a7c;
+  --line:#2c342a; --line-strong:#3b453a;
+  --accent:#8fb894; --accent-ink:#111a13; --accent-soft:#2a3527;
+  --flag:#d79a6e;
+  --focus:#8fb894;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 14px/1.45 var(--sans)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---- chrome ---- */
+.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:12px 22px;background:var(--surface);border-bottom:1px solid var(--line)}
+.mark{display:flex;align-items:baseline;gap:9px;margin-right:2px}
+.glyph{font-size:19px;line-height:1;color:var(--accent)}
+.wordmark{font-family:var(--display);font-size:23px;font-weight:600;letter-spacing:-.01em}
+.state{flex:1;display:flex;align-items:center;gap:8px;min-width:120px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:100px;
+  background:var(--sunk);border:1px solid var(--line);color:var(--ink-2);
+  font-size:11px;letter-spacing:.03em;text-transform:uppercase}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
+.pill.live .dot{background:var(--accent)}
+.pill.warn{color:var(--flag);border-color:var(--flag)}
+.pill.warn .dot{background:var(--flag)}
+
+.btn{border:1px solid var(--line-strong);background:var(--surface);border-radius:6px;
+  padding:7px 12px;cursor:pointer;color:var(--ink)}
+.btn:hover{background:var(--sunk)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:500}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.quiet{border-color:transparent;background:transparent;color:var(--ink-2);padding:6px 8px}
+.btn.quiet:hover{background:var(--sunk);color:var(--ink)}
+
+main{max-width:1500px;margin:0 auto;padding:20px 22px 56px}
+.toolbar{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+h1{font-family:var(--display);font-size:26px;font-weight:600;margin:0;letter-spacing:-.01em}
+.tally{flex:1;color:var(--ink-2);font-size:12px;font-variant-numeric:tabular-nums}
+.legend{color:var(--ink-3);font-size:12px;margin:6px 0 14px;max-width:70ch}
+
+/* ---- log ---- */
+.log{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+thead th{position:sticky;top:0;z-index:1;background:var(--sunk);text-align:left;
+  font-weight:500;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);
+  padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td,tbody th{padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+thead th:nth-child(1){width:180px}
+thead th:nth-child(2){width:64px}
+thead th:nth-child(4){width:126px}
+thead th.num{width:74px}
+thead th:last-child{width:78px}
+
+tr.day>*{background:var(--band);border-bottom:1px solid var(--line-strong);padding-top:9px;padding-bottom:9px;vertical-align:middle}
+tr.day+tr.day>*,tr.day:not(:first-child)>*{border-top:1px solid var(--surface)}
+.disclose{border:0;background:transparent;padding:0;cursor:pointer;font-weight:600;
+  font-family:var(--display);font-size:15px;white-space:nowrap;color:var(--ink)}
+.caret{display:inline-block;width:12px;color:var(--ink-3)}
+.rest{font-size:11px;color:var(--ink-2)}
+.sub{display:block;font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+tr.day .num{font-weight:600}
+
+tr.item:hover>*{background:var(--sunk)}
+.kind{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.clock{color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.what{min-width:240px;max-width:820px}
+.note{color:var(--ink-2)}
+.portion{margin-top:2px;font-size:11px;color:var(--ink-3)}
+.portion summary{cursor:pointer;list-style-position:inside}
+.portion p{margin:5px 0 0;white-space:pre-wrap;max-width:65ch}
+.whoop{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:12px}
+tr.day .whoop{color:var(--ink);font-weight:600}
+.est{color:var(--flag)}
+.rowtools{white-space:nowrap;text-align:right}
+.rowtools button{border:0;background:transparent;cursor:pointer;color:var(--ink-3);font-size:11px;padding:2px 5px;border-radius:4px}
+.rowtools button:hover{color:var(--accent);background:var(--accent-soft)}
+.empty{color:var(--ink-3);font-style:italic}
+.blank{padding:44px 12px;text-align:center;color:var(--ink-2)}
+.blank strong{display:block;font-family:var(--display);font-size:18px;color:var(--ink);margin-bottom:4px}
+
+/* ---- editor ---- */
+dialog{border:1px solid var(--line-strong);border-radius:12px;padding:0;width:560px;
+  max-width:calc(100vw - 20px);max-height:92vh;background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(20,32,26,.45)}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:2}
+.sheet-head h2{font-family:var(--display);font-size:19px;font-weight:600;margin:0}
+form{padding:18px 20px 22px;display:flex;flex-direction:column;gap:13px}
+label.field{display:flex;flex-direction:column;gap:5px;font-size:11px;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-2)}
+label.field input,label.field select,label.field textarea{
+  font-size:14px;text-transform:none;letter-spacing:0;color:var(--ink);
+  padding:9px 10px;border:1px solid var(--line-strong);border-radius:6px;background:var(--ground);width:100%}
+textarea{resize:vertical;min-height:56px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.quad{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+.segments{display:flex;gap:3px;padding:3px;background:var(--sunk);border:1px solid var(--line);border-radius:8px}
+.segments button{flex:1;border:0;border-radius:6px;background:transparent;padding:8px 4px;cursor:pointer;
+  font-size:13px;color:var(--ink-2)}
+.segments button:hover{background:var(--accent-soft);color:var(--ink)}
+.segments button[aria-checked="true"]{background:var(--accent);color:var(--accent-ink);font-weight:500}
+
+.namerow{display:flex;gap:8px;align-items:flex-end}
+.namerow label.field{flex:1}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:13px;margin:0;display:flex;flex-direction:column;gap:11px}
+legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);padding:0 6px}
+.hint{font-size:12px;color:var(--ink-3);margin:0}
+.hint.alert{color:var(--flag)}
+.check{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);text-transform:none;letter-spacing:0}
+.check input{width:auto;padding:0}
+.actions{display:flex;gap:9px;align-items:center;padding-top:2px}
+.actions .spacer{flex:1}
+
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(8px);
+  background:var(--accent);color:var(--accent-ink);padding:10px 18px;border-radius:8px;
+  box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:720px){
+  .topbar{padding:10px 12px;gap:8px}
+  main{padding:14px 10px 40px}
+  td,tbody th,thead th{padding:6px 8px}
+  .what{min-width:180px}
+  thead th:nth-child(1){width:130px}
+  .quad{grid-template-columns:1fr 1fr}
+}
+</style>
+
+<header class="topbar">
+  <span class="mark"><span class="glyph">◒</span><span class="wordmark">Daybook</span></span>
+  <span class="state"><span class="pill" id="backend"><span class="dot"></span><span id="backend-text">Connecting</span></span></span>
+  <button class="btn" id="export" hidden>Export JSON</button>
+  <button class="btn primary" id="add">＋ Add entry</button>
+</header>
+
+<main>
+  <div class="toolbar">
+    <h1>Daily log</h1>
+    <span class="tally" id="tally"></span>
+    <button class="btn quiet" id="expand">Expand all</button>
+    <button class="btn quiet" id="collapse">Collapse all</button>
+  </div>
+  <p class="legend">Macros run calories, protein, carbs, fat. A tilde marks an estimate. Click a date to fold its entries away.</p>
+
+  <div class="log">
+    <table>
+      <thead><tr>
+        <th scope="col">Date</th><th scope="col">Time</th><th scope="col">Entry</th>
+        <th scope="col">WHOOP</th>
+        <th scope="col" class="num">kcal</th><th scope="col" class="num">Protein</th>
+        <th scope="col" class="num">Carbs</th><th scope="col" class="num">Fat</th>
+        <th scope="col"><span class="sr">Row actions</span></th>
+      </tr></thead>
+      <tbody id="log"></tbody>
+    </table>
+  </div>
+</main>
+
+<dialog id="sheet">
+  <div class="sheet-head">
+    <h2 id="sheet-title">Add to your day</h2>
+    <button class="btn quiet" id="close">Close</button>
+  </div>
+  <form id="entry">
+    <label class="field">Date<select id="day"></select></label>
+
+    <label class="field" id="kind-label">Entry type
+      <div class="segments" id="kinds" role="radiogroup" aria-label="Entry type"></div>
+    </label>
+    <input type="hidden" id="kind" value="Food">
+
+    <div class="pair">
+      <label class="field">Time<input id="time" type="time" required></label>
+      <label class="field" id="servings-f">Servings<input id="servings" type="number" min="0.01" step="any" value="1"></label>
+      <label class="field" id="recovery-f" hidden>Recovery %<input id="recovery" type="number" min="0" max="100" step="any" placeholder="79"></label>
+      <label class="field" id="sleep-f" hidden>Sleep hours<input id="sleep" type="number" min="0" max="24" step="any" placeholder="7.5"></label>
+      <label class="field" id="rhr-f" hidden>Resting HR<input id="rhr" type="number" min="1" step="any" placeholder="54"></label>
+      <label class="field" id="strain-f" hidden>Day strain<input id="strain" type="number" min="0" max="21" step="any" placeholder="15.1"></label>
+    </div>
+    <p class="hint" id="whoop-hint" hidden>These are the day's WHOOP numbers, one set per date. Leave blank if nothing was recorded.</p>
+
+    <div class="namerow">
+      <label class="field" id="name-label">What you ate
+        <input id="name" list="known" placeholder="Describe it in plain English" required maxlength="250" autocomplete="off">
+      </label>
+      <button class="btn" type="button" id="estimate" hidden>Estimate macros</button>
+    </div>
+    <datalist id="known"></datalist>
+    <p class="hint" id="estimate-note" hidden></p>
+
+    <fieldset id="macros">
+      <legend>Macros per serving</legend>
+      <div class="quad">
+        <label class="field">Calories<input id="calories" type="number" min="0" step="any"></label>
+        <label class="field">Protein g<input id="protein" type="number" min="0" step="any"></label>
+        <label class="field">Carbs g<input id="carbs" type="number" min="0" step="any"></label>
+        <label class="field">Fat g<input id="fat" type="number" min="0" step="any"></label>
+      </div>
+      <label class="check"><input id="estimated" type="checkbox" checked> Mark these as an estimate</label>
+    </fieldset>
+
+    <label class="field">Notes<textarea id="notes" rows="2" placeholder="Portion, ingredients, how it felt"></textarea></label>
+
+    <div class="actions">
+      <button class="btn primary" type="submit">Save entry</button>
+      <button class="btn" type="button" id="cancel" hidden>Cancel edit</button>
+      <span class="spacer"></span>
+      <button class="btn quiet" type="button" id="remove" hidden>Delete entry</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const MACROS = ['calories','protein','carbs','fat'];
+const KINDS = [['Sleep','Wake'],['Food','Food'],['Exercise','Exercise'],['Work','Work']];
+// WHOOP gives one set of numbers per day. Each is edited on the entry it belongs to.
+const WHOOP = {
+  Sleep:[['recovery','recovery'],['sleep','sleep'],['rhr','rhr']],
+  Exercise:[['strain','strain']]
+};
+const ALL_WHOOP = Object.values(WHOOP).flat();
+const LOCAL_KEY = 'daybook-offline-v1';
+
+const state = { days:{}, foods:[], loaded:false, mode:'connecting' };
+const folded = new Set();
+let store = null, ask = null, saver = null, editing = null, current = null;
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => Number.isFinite(Number(v)) ? Number(v) : 0;
+const dayIds = () => Object.keys(state.days).sort().reverse();
+const theDay = () => state.days[current];
+
+function toast(msg){
+  $('toast').textContent = msg;
+  $('toast').classList.add('show');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => $('toast').classList.remove('show'), 3600);
+}
+
+function setBackend(mode, text){
+  state.mode = mode;
+  $('backend').className = 'pill' + (mode === 'db' ? ' live' : mode === 'local' ? ' warn' : '');
+  $('backend-text').textContent = text;
+  $('export').hidden = !saver;
+}
+
+/* ---------- totals ---------- */
+function totals(entries){
+  return entries.reduce((sum, e) => {
+    if(e.type !== 'Food') return sum;
+    for(const k of MACROS) sum[k] += num(e[k]) * num(e.servings || 1);
+    return sum;
+  }, {calories:0, protein:0, carbs:0, fat:0});
+}
+
+/* ---------- rendering ---------- */
+function restText(d){
+  return [['sleep','Sleep',' h'],['rhr','RHR',' bpm']]
+    .filter(([k]) => d.metrics[k] != null)
+    .map(([k,label,unit]) => label + ' ' + d.metrics[k] + unit).join(' · ');
+}
+function whoopText(d, type){
+  const out = [];
+  if((!type || type === 'Sleep') && d.metrics.recovery != null) out.push(d.metrics.recovery + '% rec');
+  if((!type || type === 'Exercise') && d.metrics.strain != null) out.push(d.metrics.strain + ' strain');
+  return out.join(' · ');
+}
+function macroCells(values, estimated){
+  return MACROS.map((k,i) =>
+    `<td class="num${estimated ? ' est' : ''}">${estimated ? '~' : ''}${Math.round(values[k]).toLocaleString()}${i ? 'g' : ''}</td>`
+  ).join('');
+}
+
+function render(){
+  const ids = dayIds();
+  const entryCount = ids.reduce((n,id) => n + state.days[id].entries.length, 0);
+  $('tally').textContent = state.loaded
+    ? `${ids.length} ${ids.length === 1 ? 'day' : 'days'} · ${entryCount} entries`
+    : '';
+
+  if(!ids.length){
+    $('log').innerHTML = state.loaded
+      ? `<tr><td colspan="9" class="blank"><strong>Nothing logged yet</strong>Add an entry and it lands here, on every device you open this on.</td></tr>`
+      : `<tr><td colspan="9" class="blank">Loading your diary…</td></tr>`;
+  } else {
+    $('log').innerHTML = ids.map(renderDay).join('');
+  }
+
+  const opts = ids.map(id => `<option value="${esc(id)}">${esc(state.days[id].label)}</option>`).join('');
+  $('day').innerHTML = opts;
+  if(current) $('day').value = current;
+  $('day').disabled = !!editing;
+}
+
+function renderDay(id){
+  const d = state.days[id];
+  const open = !folded.has(id);
+  const sum = totals(d.entries);
+  const estimated = d.entries.some(e => e.type === 'Food' && e.estimated);
+  const head = `<tr class="day">
+    <th scope="row"><button class="disclose" data-fold="${esc(id)}" aria-expanded="${open}"><span class="caret">${open ? '▾' : '▸'}</span>${esc(d.label)}</button></th>
+    <td colspan="2"><span class="rest">${esc(restText(d))}</span><span class="sub">${d.entries.length} entries · day total</span></td>
+    <td class="whoop">${esc(whoopText(d))}</td>
+    ${macroCells(sum, estimated)}
+    <td class="rowtools"><button data-new="${esc(id)}" aria-label="Add an entry to ${esc(d.label)}">＋ Add</button></td>
+  </tr>`;
+  if(!open) return head;
+
+  const rows = d.entries.slice().sort((a,b) => String(a.time).localeCompare(String(b.time))).map(e => {
+    const food = e.type === 'Food';
+    const label = {Sleep:'Wake', Exercise:'Exercise', Work:'Work', Food:'Food'}[e.type] || e.type;
+    const detail = food
+      ? `<div class="portion">${e.notes ? `<details><summary>${num(e.servings)} serving${num(e.servings) === 1 ? '' : 's'}${e.estimated ? ' · estimated' : ''}</summary><p>${esc(e.notes)}</p></details>` : `${num(e.servings)} serving${num(e.servings) === 1 ? '' : 's'}${e.estimated ? ' · estimated' : ''}`}</div>`
+      : e.notes ? `<div class="portion"><p>${esc(e.notes)}</p></div>` : '';
+    const cells = food
+      ? macroCells(Object.fromEntries(MACROS.map(k => [k, num(e[k]) * num(e.servings || 1)])), e.estimated)
+      : '<td></td><td></td><td></td><td></td>';
+    return `<tr class="item" data-day="${esc(id)}">
+      <td class="kind">${esc(label)}</td>
+      <td class="clock">${esc(e.time)}</td>
+      <td class="what">${esc(e.name)}${detail}</td>
+      <td class="whoop">${esc(whoopText(d, e.type))}</td>
+      ${cells}
+      <td class="rowtools"><button data-edit="${esc(e.id)}" aria-label="Edit ${esc(e.name)}">Edit</button></td>
+    </tr>`;
+  }).join('');
+
+  return head + (rows || `<tr class="item"><td></td><td colspan="8" class="empty">No entries on this day yet.</td></tr>`);
+}
+
+/* ---------- the editor ---------- */
+function renderKinds(kind){
+  const shown = KINDS.some(([k]) => k === kind) ? KINDS : [...KINDS, [kind, kind]];
+  $('kinds').innerHTML = shown.map(([k,label]) =>
+    `<button type="button" role="radio" data-kind="${esc(k)}" aria-checked="${k === kind}">${esc(label)}</button>`
+  ).join('');
+}
+
+function applyKind(){
+  const kind = $('kind').value, food = kind === 'Food';
+  renderKinds(kind);
+  $('macros').hidden = !food;
+  $('servings-f').hidden = !food;
+  $('name-label').firstChild.textContent = food ? 'What you ate' : kind === 'Sleep' ? 'How you woke up' : 'Activity';
+  $('name').placeholder = food ? 'Describe it in plain English' : kind === 'Exercise' ? 'Tennis, bike, lift…' : kind === 'Sleep' ? 'Wake up' : 'What you worked on';
+  $('estimate').hidden = !(food && ask);
+  if(!food) hideEstimateNote();
+
+  const fields = WHOOP[kind] || [];
+  for(const [,f] of ALL_WHOOP) $(f + '-f').hidden = !fields.some(x => x[1] === f);
+  const d = theDay();
+  for(const [key,f] of fields) $(f).value = d && d.metrics[key] != null ? d.metrics[key] : '';
+  $('whoop-hint').hidden = !fields.length;
+
+  $('known').innerHTML = (food ? state.foods.map(f => f.name) : pastNames(kind))
+    .map(n => `<option value="${esc(n)}"></option>`).join('');
+}
+
+// Past entry names of one type, most recent first, so repeat activities autocomplete.
+function pastNames(kind){
+  const seen = new Map();
+  for(const id of dayIds()){
+    for(const e of state.days[id].entries.slice().sort((a,b) => String(b.time).localeCompare(String(a.time)))){
+      const n = (e.name || '').trim();
+      if(e.type === kind && n && !seen.has(n.toLowerCase())) seen.set(n.toLowerCase(), n);
+    }
+  }
+  return [...seen.values()];
+}
+
+function resetForm(){
+  editing = null;
+  $('entry').reset();
+  $('kind').value = 'Food';
+  $('time').value = new Date().toTimeString().slice(0,5);
+  $('sheet-title').textContent = 'Add to your day';
+  $('cancel').hidden = true;
+  $('remove').hidden = true;
+  hideEstimateNote();
+  applyKind();
+}
+
+function openSheet(dayId){
+  current = dayId;
+  resetForm();
+  render();
+  applyKind();
+  $('sheet').showModal();
+  $('name').focus();
+}
+
+function hideEstimateNote(){ $('estimate-note').hidden = true; $('estimate-note').className = 'hint'; }
+function showEstimateNote(text, alert){
+  $('estimate-note').textContent = text;
+  $('estimate-note').className = 'hint' + (alert ? ' alert' : '');
+  $('estimate-note').hidden = false;
+}
+
+/* ---------- asking Claude for macros ---------- */
+const ESTIMATE_RULES = [
+  'Reply with only a JSON object, no prose around it, exactly this shape:',
+  '{"name":"Two Beyond patties with cheese","servings":1,"calories":650,"protein":45,"carbs":18,"fat":46,"assumptions":"Assumes two 4 oz patties, 1 oz cheddar and a small side salad with vinaigrette."}',
+  '',
+  'Rules:',
+  '- calories, protein, carbs and fat are numbers for ONE serving. Macros are in grams.',
+  '- servings is how many of that serving the text describes. Usually 1.',
+  '- name is a short title in the diarist’s own words.',
+  '- assumptions is one or two sentences naming the portions and ingredients you assumed, so they can be corrected.',
+  '- Use any quantity the text states. Where none is stated, assume a typical portion and say so in assumptions.'
+].join('\n');
+
+async function estimateMacros(){
+  const text = $('name').value.trim();
+  if(!text){ $('name').focus(); return; }
+  const extra = $('notes').value.trim();
+  $('estimate').disabled = true;
+  showEstimateNote('Asking Claude…', false);
+  try{
+    const reply = await ask.json(
+      'Estimate the nutrition of one item in a personal food diary.\n\nThe diarist wrote:\n"' + text + '"' +
+      (extra ? '\n\nExtra detail they added:\n"' + extra + '"' : '') + '\n\n' + ESTIMATE_RULES,
+      {modelTier:'default'}
+    );
+    if(!reply || typeof reply !== 'object' || Array.isArray(reply)) throw {code:'invalid_json'};
+    for(const k of MACROS) if(Number.isFinite(Number(reply[k]))) $(k).value = Number(reply[k]);
+    if(Number.isFinite(Number(reply.servings)) && Number(reply.servings) > 0) $('servings').value = Number(reply.servings);
+    if(typeof reply.name === 'string' && reply.name.trim()) $('name').value = reply.name.trim();
+    $('estimated').checked = true;
+    if(typeof reply.assumptions === 'string' && reply.assumptions.trim()){
+      $('notes').value = extra ? extra + '\n' + reply.assumptions.trim() : reply.assumptions.trim();
+    }
+    showEstimateNote('Claude estimated these. Correct anything that looks off before saving.', false);
+  }catch(err){
+    const code = err && err.code;
+    if(code === 'not_granted' || code === 'sampling_disabled' || code === 'not_declared'){
+      $('estimate').hidden = true;
+      hideEstimateNote();
+    } else if(code === 'rate_limited'){
+      showEstimateNote('Claude is rate limited right now. Try again shortly, or type the numbers yourself.', true);
+    } else if(code === 'invalid_json' || code === 'empty_completion'){
+      showEstimateNote('That answer came back unusable. Try describing the food differently, or type the numbers yourself.', true);
+    } else if(code === 'refused'){
+      showEstimateNote('Claude would not estimate that one. Type the numbers yourself.', true);
+    } else if(code === 'session_expired'){
+      showEstimateNote('Your Claude session expired. Sign in again to estimate.', true);
+    } else {
+      showEstimateNote('The estimate did not come through. Try again, or type the numbers yourself.', true);
+    }
+  }finally{
+    $('estimate').disabled = false;
+  }
+}
+
+/* ---------- storage ---------- */
+function normaliseDay(id, raw){
+  const d = raw || {};
+  return {
+    id,
+    label: typeof d.label === 'string' && d.label ? d.label : id,
+    metrics: (d.metrics && typeof d.metrics === 'object') ? {...d.metrics} : {},
+    entries: Array.isArray(d.entries) ? d.entries : []
+  };
+}
+
+async function persistDay(id){
+  const d = state.days[id];
+  if(!d) return;
+  const body = {label:d.label, metrics:d.metrics, entries:d.entries};
+  if(store){
+    await store.doc('days/' + id).set(body);
+  } else {
+    saveLocal();
+    render();
+  }
+}
+async function persistFoods(){
+  if(store) await store.doc('library/foods').set({foods: state.foods});
+  else saveLocal();
+}
+
+function saveLocal(){
+  try{
+    localStorage.setItem(LOCAL_KEY, JSON.stringify({days: state.days, foods: state.foods}));
+  }catch(e){
+    toast('This browser would not save. Export a backup.');
+  }
+}
+function loadLocal(){
+  try{
+    const raw = localStorage.getItem(LOCAL_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && parsed.days) for(const [id,d] of Object.entries(parsed.days)) state.days[id] = normaliseDay(id, d);
+    if(parsed && Array.isArray(parsed.foods)) state.foods = parsed.foods;
+  }catch(e){ /* an unreadable local copy is not worth losing the page over */ }
+}
+
+function rememberFood(entry){
+  const food = {name:entry.name, notes:entry.notes, estimated:!!entry.estimated};
+  for(const k of MACROS) food[k] = num(entry[k]);
+  const at = state.foods.findIndex(f => (f.name || '').toLowerCase() === entry.name.toLowerCase());
+  if(at >= 0) state.foods[at] = food; else state.foods.push(food);
+  persistFoods();
+}
+
+/* ---------- events ---------- */
+$('kinds').onclick = e => {
+  const b = e.target.closest('button');
+  if(!b) return;
+  $('kind').value = b.dataset.kind;
+  applyKind();
+};
+
+$('name').addEventListener('input', () => {
+  if($('kind').value !== 'Food') return;
+  const match = state.foods.find(f => (f.name || '').toLowerCase() === $('name').value.trim().toLowerCase());
+  if(!match) return;
+  for(const k of MACROS) $(k).value = num(match[k]);
+  if(match.notes) $('notes').value = match.notes;
+  $('estimated').checked = !!match.estimated;
+  showEstimateNote('Filled in from the last time you logged this.', false);
+});
+
+$('estimate').onclick = estimateMacros;
+$('close').onclick = () => $('sheet').close();
+$('cancel').onclick = () => { resetForm(); applyKind(); };
+$('day').onchange = () => { current = $('day').value; applyKind(); };
+$('add').onclick = () => {
+  const now = new Date();
+  const id = [now.getFullYear(), String(now.getMonth()+1).padStart(2,'0'), String(now.getDate()).padStart(2,'0')].join('-');
+  if(!state.days[id]){
+    state.days[id] = {id, label: now.toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'}), metrics:{}, entries:[]};
+    persistDay(id);
+  }
+  openSheet(id);
+};
+$('expand').onclick = () => { folded.clear(); render(); };
+$('collapse').onclick = () => { dayIds().forEach(id => folded.add(id)); render(); };
+
+$('log').onclick = e => {
+  const b = e.target.closest('button');
+  if(!b) return;
+  if(b.dataset.fold){
+    folded.has(b.dataset.fold) ? folded.delete(b.dataset.fold) : folded.add(b.dataset.fold);
+    render();
+    return;
+  }
+  if(b.dataset.new){ openSheet(b.dataset.new); return; }
+  if(!b.dataset.edit) return;
+
+  current = b.closest('tr').dataset.day;
+  const entry = theDay().entries.find(x => x.id === b.dataset.edit);
+  if(!entry) return;
+  resetForm();
+  editing = entry.id;
+  $('kind').value = entry.type;
+  $('time').value = entry.time;
+  $('name').value = entry.name;
+  $('notes').value = entry.notes || '';
+  $('servings').value = entry.servings != null ? entry.servings : 1;
+  for(const k of MACROS) $(k).value = entry[k] != null ? entry[k] : '';
+  $('estimated').checked = !!entry.estimated;
+  $('sheet-title').textContent = 'Edit entry';
+  $('cancel').hidden = false;
+  $('remove').hidden = false;
+  render();
+  applyKind();
+  $('sheet').showModal();
+};
+
+$('remove').onclick = async () => {
+  if(!editing) return;
+  const d = theDay();
+  d.entries = d.entries.filter(x => x.id !== editing);
+  await persistDay(d.id);
+  resetForm();
+  render();
+  $('sheet').close();
+  toast('Entry deleted');
+};
+
+$('entry').onsubmit = async e => {
+  e.preventDefault();
+  const kind = $('kind').value;
+  const name = $('name').value.trim();
+  if(!name) return;
+  const d = theDay();
+  if(!d) return;
+
+  const entry = {
+    id: editing || (crypto.randomUUID ? crypto.randomUUID() : 'e' + Date.now() + Math.random().toString(36).slice(2)),
+    type: kind, time: $('time').value, name, notes: $('notes').value
+  };
+  if(kind === 'Food'){
+    for(const k of MACROS) entry[k] = num($(k).value);
+    entry.servings = num($('servings').value) || 1;
+    entry.estimated = $('estimated').checked;
+  }
+  for(const [key,f] of WHOOP[kind] || []){
+    const v = $(f).value;
+    if(v === '') delete d.metrics[key]; else d.metrics[key] = Number(v);
+  }
+
+  const at = d.entries.findIndex(x => x.id === editing);
+  if(at >= 0) d.entries[at] = entry; else d.entries.push(entry);
+
+  if(kind === 'Food') rememberFood(entry);
+  folded.delete(d.id);
+  try{
+    await persistDay(d.id);
+    toast(editing ? 'Entry updated' : 'Entry saved');
+  }catch(err){
+    toast('That did not save. Check your connection and try again.');
+  }
+  resetForm();
+  render();
+  applyKind();
+  $('sheet').close();
+};
+
+$('export').onclick = async () => {
+  if(!saver) return;
+  const payload = {exported: new Date().toISOString(), days: state.days, foods: state.foods};
+  try{
+    await saver.save({filename:'daybook-backup.json', data: JSON.stringify(payload, null, 2)});
+  }catch(err){
+    if(err && err.code !== 'cancelled') toast('The download did not go through.');
+  }
+};
+
+/* ---------- boot ---------- */
+render();
+applyKind();
+
+(async () => {
+  const claudeApi = window.claude && window.claude.use ? window.claude : null;
+  if(!claudeApi){
+    loadLocal();
+    state.loaded = true;
+    setBackend('local', 'This browser only');
+    render();
+    applyKind();
+    return;
+  }
+
+  const [db, sample, downloads] = await Promise.all([
+    claudeApi.use('db').catch(() => null),
+    claudeApi.use('sample').catch(() => null),
+    claudeApi.use('downloads').catch(() => null)
+  ]);
+
+  ask = sample;
+  saver = downloads;
+
+  if(db){
+    store = db;
+    setBackend('db', 'Synced');
+    db.collection('days').onSnapshot(snap => {
+      state.days = {};
+      for(const doc of snap.docs) state.days[doc.id] = normaliseDay(doc.id, doc.data());
+      state.loaded = true;
+      render();
+      if($('sheet').open) applyKind();
+    }, err => {
+      setBackend('local', err.code === 'revoked' ? 'Access ended' : 'Sync interrupted');
+      state.loaded = true;
+      render();
+    });
+    db.doc('library/foods').onSnapshot(snap => {
+      const body = snap.data();
+      state.foods = body && Array.isArray(body.foods) ? body.foods : [];
+      if($('sheet').open) applyKind();
+    }, () => {});
+  } else {
+    loadLocal();
+    state.loaded = true;
+    setBackend('local', 'This browser only');
+    render();
+  }
+  applyKind();
+})();
+</script>

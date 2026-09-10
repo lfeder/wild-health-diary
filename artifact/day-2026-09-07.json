@@ -1,0 +1,113 @@
+{
+ "label": "Monday · Sep 7",
+ "metrics": {
+  "strain": 15
+ },
+ "entries": [
+  {
+   "time": "06:20",
+   "type": "Sleep",
+   "name": "Wake up · WHOOP missing",
+   "notes": "WHOOP didn’t record.",
+   "id": "import-monday-0"
+  },
+  {
+   "type": "Food",
+   "time": "10:00",
+   "name": "Tea with a little whole milk",
+   "calories": 30,
+   "protein": 2,
+   "carbs": 2,
+   "fat": 2,
+   "notes": "Assumes about ¼ cup whole milk.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-monday-1"
+  },
+  {
+   "type": "Food",
+   "time": "10:00",
+   "name": "A few bites of turkey chili",
+   "calories": 40,
+   "protein": 4,
+   "carbs": 4,
+   "fat": 1,
+   "servings": 1,
+   "estimated": true,
+   "notes": "Leftover turkey chili, assumes about 3 tbsp. Approximate working portion; edit to match what you ate.",
+   "id": "import-monday-2"
+  },
+  {
+   "type": "Food",
+   "time": "13:30",
+   "name": "Usual salad",
+   "calories": 300,
+   "protein": 13,
+   "carbs": 27,
+   "fat": 17,
+   "notes": "Small salad, same as yesterday.\nWorking portion: greens, ½ cup soybeans, ¼ cup cooked quinoa, peppers, a few grapes, ½ oz feta, 1 tbsp champagne vinaigrette.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-monday-3"
+  },
+  {
+   "type": "Food",
+   "time": "13:30",
+   "name": "Egg salad & seasoned chicken",
+   "calories": 230,
+   "protein": 24,
+   "carbs": 3,
+   "fat": 13,
+   "servings": 1,
+   "estimated": true,
+   "notes": "Half scoop of egg salad and half scoop of seasoned chicken; assumes ¼ cup egg salad and 2 oz chicken. Approximate working portion; edit to match what you ate.",
+   "id": "import-monday-4"
+  },
+  {
+   "time": "14:45",
+   "type": "Exercise",
+   "name": "Bike → tennis → bike",
+   "notes": "Reported strain 15.0.",
+   "id": "import-monday-5"
+  },
+  {
+   "type": "Food",
+   "time": "17:00",
+   "name": "RXBAR",
+   "calories": 210,
+   "protein": 12,
+   "carbs": 24,
+   "fat": 9,
+   "notes": "Generic bar estimate; check flavor label.",
+   "servings": 1,
+   "estimated": true,
+   "id": "import-monday-6"
+  },
+  {
+   "type": "Food",
+   "time": "18:00",
+   "name": "Protein shake with milk",
+   "calories": 270,
+   "protein": 32,
+   "carbs": 15,
+   "fat": 10,
+   "servings": 1,
+   "estimated": true,
+   "notes": "One scoop powder, milk and ice. Assumes scoop with 24 g protein and 1 cup whole milk. Approximate working portion; edit to match what you ate.",
+   "id": "import-monday-7"
+  },
+  {
+   "type": "Food",
+   "time": "19:00",
+   "name": "Tuna, salad, grilled onions & halloumi",
+   "calories": 470,
+   "protein": 45,
+   "carbs": 16,
+   "fat": 25,
+   "servings": 1,
+   "estimated": true,
+   "notes": "Tuna with relish and mustard, salad, grilled onions, halloumi. Assumes 5 oz tuna, 2 oz halloumi and some oil. Approximate working portion; edit to match what you ate.",
+   "id": "import-monday-8"
+  }
+ ]
+}
