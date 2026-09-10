@@ -11,6 +11,19 @@
   if(existing){const ids=new Set(existing.entries.map(e=>e.id));old.entries=[...old.entries.filter(e=>!ids.has(e.id)),...existing.entries];old.metrics={...old.metrics,...existing.metrics};data.days=data.days.filter(d=>d!==existing);}
   old.id=id;old.label=weekday[0].toUpperCase()+weekday.slice(1)+' · Sep '+(4+i);old.imported=true;
  }
+ // The imported late-work row describes the same Wednesday wake-up event.
+ for(const d of data.days){
+  const wake=d.entries.find(e=>e.id==='import-wednesday-0');
+  const work=d.entries.find(e=>e.id==='import-wednesday-1');
+  if(!wake||!work)continue;
+  const originalWork=work.name==='Late work the previous night'&&work.notes==='Exact work time and duration not supplied.';
+  if(originalWork){
+   if(!/late.*work/i.test(wake.notes))wake.notes+=(wake.notes?'\n':'')+'Stayed up late working the previous night.';
+  }else{
+   wake.notes+=(wake.notes?'\n':'')+[work.name,work.notes].filter(Boolean).join(' — ');
+  }
+  d.entries=d.entries.filter(e=>e!==work);
+ }
  return data;
  }
  root.DiaryCore={totals,valid,dateImports};
