@@ -404,8 +404,15 @@ function applyKind(){
   $('whoop-fields').hidden = !fields.length;
   $('whoop-hint').hidden = !fields.length;
 
-  pool = food ? state.foods.map(f => f.name) : pastNames(kind);
+  refreshPool();
   closeSuggest();
+}
+
+// Snapshots from another device refresh the suggestions, but must not
+// rewrite fields the viewer may be part way through filling in.
+function refreshPool(){
+  const kind = $('kind').value;
+  pool = kind === 'Food' ? state.foods.map(f => f.name) : pastNames(kind);
 }
 
 /* A hand-built suggestion list. The native datalist collapses into a
@@ -538,9 +545,10 @@ async function estimateMacros(){
     showEstimateNote('Claude estimated these. Correct anything that looks off before saving.', false);
   }catch(err){
     const code = err && err.code;
+    // Never hide the button on a refusal: a denial only lasts this page
+    // load, so the fix the viewer needs is to reopen and allow.
     if(code === 'not_granted' || code === 'sampling_disabled' || code === 'not_declared'){
-      $('estimate').hidden = true;
-      hideEstimateNote();
+      showEstimateNote('Estimating needs permission to ask Claude. Close the diary, open it again and allow it when asked.', true);
     } else if(code === 'rate_limited'){
       showEstimateNote('Claude is rate limited right now. Try again shortly, or type the numbers yourself.', true);
     } else if(code === 'invalid_json' || code === 'empty_completion'){
@@ -763,12 +771,18 @@ applyKind();
     return;
   }
 
-  const [db, sample] = await Promise.all([
+  const [db, sample, perms] = await Promise.all([
     claudeApi.use('db').catch(() => null),
-    claudeApi.use('sample').catch(() => null)
+    claudeApi.use('sample').catch(() => null),
+    claudeApi.use('permissions').catch(() => null)
   ]);
 
   ask = sample;
+  applyKind();
+
+  // One batched dialog up front, rather than a fresh prompt the first time
+  // the diary syncs and another the first time it estimates.
+  if(perms) await perms.request(['db','sample']).catch(() => null);
 
   if(db){
     store = db;
@@ -778,7 +792,7 @@ applyKind();
       for(const doc of snap.docs) state.days[doc.id] = normaliseDay(doc.id, doc.data());
       state.loaded = true;
       render();
-      if($('sheet').open) applyKind();
+      refreshPool();
     }, err => {
       setBackend('local', err.code === 'revoked' ? 'Access ended' : 'Sync interrupted');
       state.loaded = true;
@@ -787,7 +801,7 @@ applyKind();
     db.doc('library/foods').onSnapshot(snap => {
       const body = snap.data();
       state.foods = body && Array.isArray(body.foods) ? body.foods : [];
-      if($('sheet').open) applyKind();
+      refreshPool();
     }, () => {});
   } else {
     loadLocal();
