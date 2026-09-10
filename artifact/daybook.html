@@ -77,7 +77,7 @@ thead th{position:sticky;top:0;z-index:1;background:var(--sunk);text-align:left;
   padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
 td,tbody th{padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
 th.num,td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-thead th:nth-child(1){width:180px}
+thead th:nth-child(1){width:212px}
 thead th:nth-child(2){width:64px}
 thead th:nth-child(4){width:126px}
 thead th.num{width:74px}
@@ -85,6 +85,11 @@ thead th:last-child{width:78px}
 
 tr.day>*{background:var(--band);border-bottom:1px solid var(--line-strong);padding-top:9px;padding-bottom:9px;vertical-align:middle}
 tr.day+tr.day>*,tr.day:not(:first-child)>*{border-top:1px solid var(--surface)}
+.dayhead{display:flex;align-items:center;gap:9px}
+.addhere{flex:none;width:28px;height:28px;border-radius:50%;cursor:pointer;
+  border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);
+  font-size:15px;line-height:1;padding:0;display:grid;place-items:center}
+.addhere:hover{filter:brightness(1.1)}
 .disclose{border:0;background:transparent;padding:0;cursor:pointer;font-weight:600;
   font-family:var(--display);font-size:15px;white-space:nowrap;color:var(--ink)}
 .caret{display:inline-block;width:12px;color:var(--ink-3)}
@@ -155,7 +160,10 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
   main{padding:14px 10px 40px}
   td,tbody th,thead th{padding:6px 8px}
   .what{min-width:180px}
-  thead th:nth-child(1){width:130px}
+  thead th:nth-child(1){width:168px}
+  .dayhead{gap:7px}
+  .addhere{width:32px;height:32px;font-size:17px}
+  .disclose{font-size:14px}
   .quad{grid-template-columns:1fr 1fr}
 }
 </style>
@@ -335,11 +343,14 @@ function renderDay(id){
   const sum = totals(d.entries);
   const estimated = d.entries.some(e => e.type === 'Food' && e.estimated);
   const head = `<tr class="day">
-    <th scope="row"><button class="disclose" data-fold="${esc(id)}" aria-expanded="${open}"><span class="caret">${open ? '▾' : '▸'}</span>${esc(d.label)}</button></th>
+    <th scope="row"><span class="dayhead">
+      <button class="addhere" data-new="${esc(id)}" aria-label="Add an entry to ${esc(d.label)}" title="Add an entry to ${esc(d.label)}">＋</button>
+      <button class="disclose" data-fold="${esc(id)}" aria-expanded="${open}"><span class="caret">${open ? '▾' : '▸'}</span>${esc(d.label)}</button>
+    </span></th>
     <td colspan="2"><span class="rest">${esc(restText(d))}</span><span class="sub">${d.entries.length} entries · day total</span></td>
     <td class="whoop">${esc(whoopText(d))}</td>
     ${macroCells(sum, estimated)}
-    <td class="rowtools"><button data-new="${esc(id)}" aria-label="Add an entry to ${esc(d.label)}">＋ Add</button></td>
+    <td class="rowtools"></td>
   </tr>`;
   if(!open) return head;
 
