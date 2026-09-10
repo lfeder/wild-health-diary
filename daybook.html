@@ -82,7 +82,7 @@ thead th{position:sticky;top:0;z-index:1;background:var(--sunk);text-align:left;
   padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
 td,tbody th{padding:6px 12px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
 th.num,td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-thead th:nth-child(1){width:132px}
+thead th:nth-child(1){width:104px}
 thead th:nth-child(2){width:64px}
 thead th.c-whoop{width:170px}
 thead th.num{width:74px}
@@ -178,7 +178,7 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
   main{padding:14px 10px 40px}
   td,tbody th,thead th{padding:6px 8px}
   .what{min-width:180px}
-  thead th:nth-child(1){width:122px}
+  thead th:nth-child(1){width:96px}
   .dayhead{gap:7px}
   .addhere{width:32px;height:32px;font-size:17px}
   .disclose{font-size:14px}
@@ -326,14 +326,12 @@ function totals(entries){
 }
 
 /* ---------- rendering ---------- */
-// Sep 9 2026 reads as 09/09 (Wed). Derived from the id, so a day always
-// shows the same way however its label was stored.
+// Sep 9 2026 reads as 09/09. Derived from the id, so a day always shows
+// the same way however its label was stored.
 function dayDisplay(id){
   const [y,m,dd] = id.split('-').map(Number);
-  const when = new Date(y, m - 1, dd);
-  if(isNaN(when.getTime())) return id;
-  const weekday = when.toLocaleDateString(undefined, {weekday:'short'});
-  return String(m).padStart(2,'0') + '/' + String(dd).padStart(2,'0') + ' (' + weekday + ')';
+  if(!y || !m || !dd) return id;
+  return String(m).padStart(2,'0') + '/' + String(dd).padStart(2,'0');
 }
 
 const WHOOP_READOUT = [
