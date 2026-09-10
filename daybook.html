@@ -70,6 +70,10 @@ main{max-width:1500px;margin:0 auto;padding:16px 22px 56px}
 .icon.solid{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-size:19px}
 .icon.solid:hover{filter:brightness(1.1);background:var(--accent);color:var(--accent-ink)}
 
+.alertbar{margin:0;padding:11px 22px;background:var(--accent-soft);color:var(--ink);
+  border-bottom:1px solid var(--flag);font-size:13px}
+.alertbar b{color:var(--flag)}
+
 /* ---- log ---- */
 .log{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
 table{border-collapse:collapse;width:100%;font-size:13px}
@@ -191,6 +195,8 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
   </span>
 </header>
 
+<p class="alertbar" id="alertbar" hidden></p>
+
 <main>
   <div class="log">
     <table>
@@ -294,10 +300,12 @@ function toast(msg){
   toast.t = setTimeout(() => $('toast').classList.remove('show'), 3600);
 }
 
-function setBackend(mode, text){
+function setBackend(mode, text, detail){
   state.mode = mode;
   $('backend').hidden = mode === 'db';
   $('backend-text').textContent = text;
+  $('alertbar').hidden = mode === 'db';
+  if(mode !== 'db') $('alertbar').innerHTML = '<b>' + esc(text) + '.</b> ' + esc(detail || '');
 }
 
 /* ---------- totals ---------- */
@@ -567,6 +575,22 @@ async function estimateMacros(){
 }
 
 /* ---------- storage ---------- */
+function todayId(){
+  const now = new Date();
+  return [now.getFullYear(), String(now.getMonth()+1).padStart(2,'0'), String(now.getDate()).padStart(2,'0')].join('-');
+}
+function dayLabel(id){
+  const [y,m,dd] = id.split('-').map(Number);
+  const when = new Date(y, m - 1, dd);
+  return isNaN(when.getTime()) ? id : when.toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'});
+}
+// A day created here may not be in the store yet, and an incoming snapshot
+// rebuilds state.days from the store alone. Re-create rather than lose it.
+function ensureDay(id){
+  if(!state.days[id]) state.days[id] = {id, label: dayLabel(id), metrics:{}, entries:[]};
+  return state.days[id];
+}
+
 function normaliseDay(id, raw){
   const d = raw || {};
   return {
@@ -649,13 +673,11 @@ $('close').onclick = () => $('sheet').close();
 $('cancel').onclick = () => { resetForm(); applyKind(); };
 $('day').onchange = () => { current = $('day').value; applyKind(); };
 $('add').onclick = () => {
-  const now = new Date();
-  const id = [now.getFullYear(), String(now.getMonth()+1).padStart(2,'0'), String(now.getDate()).padStart(2,'0')].join('-');
-  if(!state.days[id]){
-    state.days[id] = {id, label: now.toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'}), metrics:{}, entries:[]};
-    persistDay(id);
-  }
+  const id = todayId();
+  const fresh = !state.days[id];
+  ensureDay(id);
   openSheet(id);
+  if(fresh) persistDay(id).catch(() => toast('Could not start today. Check your connection.'));
 };
 $('expand').onclick = () => { folded.clear(); render(); };
 $('collapse').onclick = () => { dayIds().forEach(id => folded.add(id)); render(); };
@@ -722,9 +744,9 @@ $('entry').onsubmit = async e => {
   e.preventDefault();
   const kind = $('kind').value;
   const name = $('name').value.trim();
-  if(!name) return;
-  const d = theDay();
-  if(!d) return;
+  if(!name){ $('name').focus(); return; }
+  if(!current) current = $('day').value || todayId();
+  const d = ensureDay(current);
 
   const entry = {
     id: editing || (crypto.randomUUID ? crypto.randomUUID() : 'e' + Date.now() + Math.random().toString(36).slice(2)),
@@ -747,15 +769,22 @@ $('entry').onsubmit = async e => {
   folded.delete(d.id);
   try{
     await persistDay(d.id);
-    toast(editing ? 'Entry updated' : 'Entry saved');
   }catch(err){
-    toast('That did not save. Check your connection and try again.');
+    toast('Not saved: ' + ((err && (err.code || err.message)) || 'unknown error'));
+    render();
+    return;                                   // leave the sheet open with the entry intact
   }
+  toast(editing ? 'Entry updated' : 'Entry saved');
   resetForm();
   render();
   applyKind();
   $('sheet').close();
 };
+
+window.addEventListener('unhandledrejection', e => {
+  const err = e.reason;
+  toast('Problem: ' + ((err && (err.code || err.message)) || 'unknown error'));
+});
 
 /* ---------- boot ---------- */
 render();
@@ -766,7 +795,7 @@ applyKind();
   if(!claudeApi){
     loadLocal();
     state.loaded = true;
-    setBackend('local', 'This browser only');
+    setBackend('local', 'Not connected', 'Entries save on this device only and will not reach your other devices. Close the diary, open it again, and allow access when asked.');
     render();
     applyKind();
     return;
@@ -787,15 +816,16 @@ applyKind();
 
   if(db){
     store = db;
-    setBackend('db', 'Synced');
+    setBackend('db', 'Synced', '');
     db.collection('days').onSnapshot(snap => {
       state.days = {};
       for(const doc of snap.docs) state.days[doc.id] = normaliseDay(doc.id, doc.data());
+      if(current && !state.days[current]) ensureDay(current);
       state.loaded = true;
       render();
       refreshPool();
     }, err => {
-      setBackend('local', err.code === 'revoked' ? 'Access ended' : 'Sync interrupted');
+      setBackend('local', err.code === 'revoked' ? 'Access ended' : 'Sync interrupted', 'Close the diary and open it again. Anything you add until then stays on this device.');
       state.loaded = true;
       render();
     });
@@ -807,7 +837,7 @@ applyKind();
   } else {
     loadLocal();
     state.loaded = true;
-    setBackend('local', 'This browser only');
+    setBackend('local', 'Not connected', 'Entries save on this device only and will not reach your other devices. Close the diary, open it again, and allow access when asked.');
     render();
   }
   applyKind();
