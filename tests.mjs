@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import './public/seed.js';
-import './public/core.js';
+import './seed.js';
+import './core.js';
 test('Wednesday wake-up and late work become one entry without losing edited notes',()=>{const d=structuredClone(SEED);const before=DiaryCore.totals(d.days[5].entries);DiaryCore.dateImports(d);assert.equal(d.days[5].entries.length,5);assert.match(d.days[5].entries[0].notes,/Stayed up late again working/);assert.deepEqual(DiaryCore.totals(d.days[5].entries),before);const snapshot=JSON.stringify(d);DiaryCore.dateImports(d);assert.equal(JSON.stringify(d),snapshot);const edited=structuredClone(SEED);edited.days[5].entries[1].notes='Finished the proposal';DiaryCore.dateImports(edited);assert.match(edited.days[5].entries[0].notes,/Finished the proposal/);});
 test('date migration preserves edits, merges an existing Wednesday and is idempotent',()=>{const d=structuredClone(SEED);d.days[5].entries[0].notes='Edited note';const extra={id:'custom',type:'Note',time:'16:00',name:'New note',notes:'Keep me'};d.days.push({id:'2026-09-09',label:'Today',metrics:{recovery:70},entries:[extra]});DiaryCore.dateImports(d);assert.equal(d.days.length,6);assert.equal(d.days[0].id,'2026-09-04');assert.equal(d.days[5].id,'2026-09-09');assert.ok(d.days[5].entries[0].notes.startsWith('Edited note'));assert.ok(d.days[5].entries.includes(extra));assert.equal(d.days[5].metrics.recovery,70);const snapshot=JSON.stringify(d);DiaryCore.dateImports(d);assert.equal(JSON.stringify(d),snapshot);assert.ok(DiaryCore.valid(d));});
 test('seed preserves six undated days and missing recovery',()=>{assert.equal(SEED.days.length,6);assert.ok(DiaryCore.valid(SEED));assert.equal(SEED.days[3].metrics.recovery,undefined);assert.equal(SEED.days[2].metrics.rhr,54);});
