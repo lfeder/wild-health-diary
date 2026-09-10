@@ -43,10 +43,10 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* ---- chrome ---- */
 .topbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
   padding:12px 22px;background:var(--surface);border-bottom:1px solid var(--line)}
-.mark{display:flex;align-items:baseline;gap:9px;margin-right:2px}
+.mark{display:flex;align-items:baseline;gap:9px;margin-right:4px}
 .glyph{font-size:19px;line-height:1;color:var(--accent)}
 .wordmark{font-family:var(--display);font-size:23px;font-weight:600;letter-spacing:-.01em}
-.state{flex:1;display:flex;align-items:center;gap:8px;min-width:120px}
+.state{flex:1 1 auto;display:flex;align-items:center;gap:8px;min-width:0}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:100px;
   background:var(--sunk);border:1px solid var(--line);color:var(--ink-2);
   font-size:11px;letter-spacing:.03em;text-transform:uppercase}
@@ -167,7 +167,9 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media (max-width:720px){
-  .topbar{padding:10px 12px;gap:8px}
+  .topbar{padding:10px 12px;gap:7px;flex-wrap:nowrap}
+  .wordmark{font-size:20px}
+  .icon{width:32px;height:32px}
   main{padding:14px 10px 40px}
   td,tbody th,thead th{padding:6px 8px}
   .what{min-width:180px}
@@ -181,12 +183,12 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
 
 <header class="topbar">
   <span class="mark"><span class="glyph">◒</span><span class="wordmark">Daybook</span></span>
+  <button class="icon solid" id="add" aria-label="Add an entry to today" title="Add an entry to today">＋</button>
+  <button class="icon" id="expand" aria-label="Expand every day" title="Expand every day">⌄</button>
+  <button class="icon" id="collapse" aria-label="Collapse every day" title="Collapse every day">⌃</button>
   <span class="state">
     <span class="pill warn" id="backend" hidden><span class="dot"></span><span id="backend-text"></span></span>
   </span>
-  <button class="icon" id="expand" aria-label="Expand every day" title="Expand every day">⌄</button>
-  <button class="icon" id="collapse" aria-label="Collapse every day" title="Collapse every day">⌃</button>
-  <button class="icon solid" id="add" aria-label="Add an entry to today" title="Add an entry to today">＋</button>
 </header>
 
 <main>
