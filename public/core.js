@@ -26,5 +26,15 @@
  }
  return data;
  }
- root.DiaryCore={totals,valid,dateImports};
+ // Past entry names of one type, most recent first, for the name autocomplete.
+ function suggestions(days,type){
+  const seen=new Map();
+  for(const d of days.slice().sort((a,b)=>b.id.localeCompare(a.id)))
+   for(const e of d.entries.slice().sort((a,b)=>b.time.localeCompare(a.time))){
+    const name=e.name?.trim();
+    if(e.type===type&&name&&!seen.has(name.toLowerCase()))seen.set(name.toLowerCase(),name);
+   }
+  return [...seen.values()];
+ }
+ root.DiaryCore={totals,valid,dateImports,suggestions};
 })(globalThis);

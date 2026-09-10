@@ -29,7 +29,11 @@ $('close-editor').onclick=()=>$('editor').close();
 $('entry-day').onchange=()=>{selected=$('entry-day').value;render();};
 $('expand').onclick=()=>{collapsed.clear();render();};
 $('collapse').onclick=()=>{data.days.forEach(d=>collapsed.add(d.id));render();};
-function setType(){const food=$('type').value==='Food',glucose=$('type').value==='Glucose';$('nutrition').hidden=!food;$('servings-label').hidden=!food;$('servings').required=food;$('glucose-label').hidden=!glucose;$('glucose').required=glucose;macroKeys.forEach(k=>$(k).required=food);$('name').setAttribute('list',food?'foods':'');}
+function setType(){const type=$('type').value,food=type==='Food',glucose=type==='Glucose';$('nutrition').hidden=!food;$('servings-label').hidden=!food;$('servings').required=food;$('glucose-label').hidden=!glucose;$('glucose').required=glucose;macroKeys.forEach(k=>$(k).required=food);
+ // Non-food entries autocomplete from what you have already logged of the same type.
+ $('suggestions').innerHTML=food?'':DiaryCore.suggestions(data.days,type).map(n=>`<option value="${escape(n)}"></option>`).join('');
+ $('name').setAttribute('list',food?'foods':'suggestions');
+ $('name').placeholder=food?'Start typing a favorite…':{Exercise:'Start typing an activity…',Glucose:'Reading label, e.g. Post-lunch…',Sleep:'Wake up…'}[type]||'Start typing…';}
 function reset(){editing=null;$('entry-form').reset();$('time').value=new Date().toTimeString().slice(0,5);$('form-title').textContent='Add to your day';$('cancel').hidden=true;setType();}
 $('type').onchange=setType;$('cancel').onclick=()=>{reset();render();};
 $('name').addEventListener('input',()=>{if($('type').value!=='Food')return;const f=data.foods.find(f=>f.name.toLowerCase()===$('name').value.toLowerCase());if(f){macroKeys.forEach(k=>$(k).value=f[k]);$('notes').value=f.notes||'';$('estimated').checked=!!f.estimated;}});
