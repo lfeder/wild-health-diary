@@ -31,9 +31,17 @@ $('close-editor').onclick=()=>$('editor').close();
 $('entry-day').onchange=()=>{selected=$('entry-day').value;render();};
 $('expand').onclick=()=>{collapsed.clear();render();};
 $('collapse').onclick=()=>{data.days.forEach(d=>collapsed.add(d.id));render();};
+// The picker offers these four; Glucose and Note stay editable on entries that already use them.
+const entryTypes=[['Sleep','Wake'],['Food','Food'],['Exercise','Exercise'],['Work','Work']];
+function renderTypeToggle(type){
+ const shown=entryTypes.some(([t])=>t===type)?entryTypes:[...entryTypes,[type,type]];
+ $('type-toggle').innerHTML=shown.map(([t,label])=>`<button type="button" role="radio" data-type="${escape(t)}" aria-checked="${t===type}">${escape(label)}</button>`).join('');
+}
+$('type-toggle').onclick=e=>{const button=e.target.closest('button');if(!button)return;$('type').value=button.dataset.type;setType();};
 function setType(){const type=$('type').value,food=type==='Food',glucose=type==='Glucose';$('nutrition').hidden=!food;$('servings-label').hidden=!food;$('servings').required=food;$('glucose-label').hidden=!glucose;$('glucose').required=glucose;macroKeys.forEach(k=>$(k).required=food);
  // Non-food entries autocomplete from what you have already logged of the same type.
  $('suggestions').innerHTML=food?'':DiaryCore.suggestions(data.days,type).map(n=>`<option value="${escape(n)}"></option>`).join('');
+ renderTypeToggle(type);
  $('name').setAttribute('list',food?'foods':'suggestions');
  const exercise=type==='Exercise',wake=type==='Sleep';
  $('strain-label').hidden=!exercise;$('recovery-label').hidden=!wake;$('whoop-hint').hidden=!(exercise||wake);
