@@ -1,6 +1,6 @@
 # Daybook
 
-Static personal diary with six imported, undated weekdays. Food autocomplete remembers meals and per-serving macros; fractional servings update daily totals. All imported nutrition is explicitly an illustrative estimate with editable portion assumptions. Missing WHOOP values and CGM readings are not fabricated.
+Static personal diary with six imported days, September 4–9, 2026. Food autocomplete remembers meals and per-serving macros; fractional servings update daily totals. All imported nutrition is explicitly an illustrative estimate with editable portion assumptions. Missing WHOOP values and CGM readings are not fabricated.
 
 Run locally: `python3 -m http.server 8080 --directory public`. Tests: `npm test`.
 
