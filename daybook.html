@@ -84,7 +84,7 @@ td,tbody th{padding:6px 12px;border-bottom:1px solid var(--line);vertical-align:
 th.num,td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 thead th:nth-child(1){width:132px}
 thead th:nth-child(2){width:64px}
-thead th:nth-child(4){width:168px}
+thead th.c-whoop{width:170px}
 thead th.num{width:74px}
 
 tr.day>*{background:var(--band);border-bottom:1px solid var(--line-strong);padding-top:5px;padding-bottom:5px;vertical-align:middle}
@@ -98,7 +98,6 @@ tr.day+tr.day>*,tr.day:not(:first-child)>*{border-top:1px solid var(--surface)}
   font-family:var(--display);font-size:14px;white-space:nowrap;color:var(--ink);
   font-variant-numeric:tabular-nums}
 .caret{display:inline-block;width:12px;color:var(--ink-3)}
-.daysum{display:none}
 tr.day .num{font-weight:600}
 
 tr.item{cursor:pointer}
@@ -171,16 +170,8 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media (max-width:720px){
-  /* Drop the columns a phone cannot fit; a collapsed day carries its
-     totals on a second line instead. */
-  .c-time,.c-whoop,.c-carb,.c-fat{display:none}
-  .daysum{display:block;margin-top:1px;padding-left:32px;font-size:11px;
-    color:var(--ink-2);font-weight:400;font-variant-numeric:tabular-nums}
-  .kind{display:none}
-  .what{min-width:0}
-  thead th:nth-child(1){width:auto}
-  thead th.num{width:56px}
-  .log{overflow-x:visible}
+  /* Every column stays; the table scrolls sideways inside its own box. */
+  thead th.num{width:62px}
   .topbar{padding:10px 12px;gap:7px;flex-wrap:nowrap}
   .wordmark{font-size:20px}
   .icon{width:32px;height:32px}
@@ -212,9 +203,9 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
     <table>
       <thead><tr>
         <th scope="col">Date</th><th scope="col" class="c-time">Time</th><th scope="col">Entry</th>
-        <th scope="col" class="c-whoop">WHOOP</th>
         <th scope="col" class="num">kcal</th><th scope="col" class="num c-pro">Protein</th>
         <th scope="col" class="num c-carb">Carbs</th><th scope="col" class="num c-fat">Fat</th>
+        <th scope="col" class="c-whoop">WHOOP</th>
       </tr></thead>
       <tbody id="log"></tbody>
     </table>
@@ -363,13 +354,6 @@ function macroCells(values){
     `<td class="num ${MACRO_COL[i]}">${Math.round(values[k]).toLocaleString()}${i ? 'g' : ''}</td>`
   ).join('');
 }
-// The macro columns are off-screen on a phone, so a collapsed day repeats
-// its totals here, where they are always reachable.
-function daySummary(values, whoop){
-  const macros = MACROS.map((k,i) => Math.round(values[k]).toLocaleString() + ['kcal','p','c','f'][i])
-    .join(' · ');
-  return [macros, whoop].filter(Boolean).join('  ·  ');
-}
 
 function render(){
   const ids = dayIds();
@@ -397,11 +381,11 @@ function renderDay(id){
     <th scope="row"><span class="dayhead">
       <button class="addhere" data-new="${esc(id)}" aria-label="Add an entry to ${esc(shown)}" title="Add an entry to ${esc(shown)}">＋</button>
       <button class="disclose" data-fold="${esc(id)}" aria-expanded="${open}"><span class="caret">${open ? '▾' : '▸'}</span>${esc(shown)}</button>
-    </span><span class="daysum">${esc(daySummary(sum, whoopText(d)))}</span></th>
+    </span></th>
     <td class="c-time"></td>
     <td></td>
-    <td class="whoop c-whoop">${esc(whoopText(d))}</td>
     ${macroCells(sum)}
+    <td class="whoop c-whoop">${esc(whoopText(d))}</td>
   </tr>`;
   if(!open) return head;
 
@@ -421,8 +405,8 @@ function renderDay(id){
       <td class="kind">${esc(label)}</td>
       <td class="clock c-time">${esc(e.time)}</td>
       <td class="what">${esc(e.name)}${detail}</td>
-      <td class="whoop c-whoop">${esc(whoopText(d, e.type))}</td>
       ${cells}
+      <td class="whoop c-whoop">${esc(whoopText(d, e.type))}</td>
     </tr>`;
   }).join('');
 
