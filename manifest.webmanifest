@@ -1,0 +1,12 @@
+{
+  "name": "Daybook · Lenny's diary",
+  "short_name": "Daybook",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fafbf8",
+  "theme_color": "#2f5644",
+  "icons": [
+    {"src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+  ]
+}
