@@ -1,11 +1,24 @@
 # Daybook
 
-Static personal diary with six imported days, September 4–9, 2026. Food autocomplete remembers meals and per-serving macros, and exercise, wake-up, work and note entries autocomplete from what you have already logged of that type; fractional servings update daily totals. All imported nutrition is explicitly an illustrative estimate with editable portion assumptions. Missing WHOOP values and CGM readings are not fabricated.
+A private food and WHOOP diary. `daybook.html` is the whole app, one file, published as a
+Claude artifact at https://claude.ai/code/artifact/32d34390-718c-4251-a503-df833f0e2c2d
 
-Live on GitHub Pages at https://lfeder.github.io/wild-health-diary/, served straight from the repository root. This repository is public, so the diary content is world-readable. There is no build step: push a change to `main` and the site updates.
+It declares two runtime capabilities:
 
-WHOOP numbers are typed with the entry they belong to: recovery, sleep hours and resting heart rate on a wake-up entry, day strain on an exercise entry. Recovery and strain also show in the WHOOP column.
+- `db` — a shared document store, and the live copy of the diary. `days/<YYYY-MM-DD>` holds
+  one day (`label`, `metrics`, `entries`), `library/foods` holds the remembered foods. Every
+  device reads and writes the same store, live, so the phone and the laptop never drift.
+- `sample` — lets the page ask Claude to estimate macros from a plain-English description of
+  a meal, returning the numbers along with the portion assumptions it made, so they can be
+  corrected before saving.
 
-Run locally: `python3 -m http.server 8080`. Tests: `npm test`.
+With neither available the page falls back to that browser's local storage and says so in the
+header pill.
 
-Data added in the app is stored in localStorage for this browser/origin, not synchronized to a server or other devices. JSON export/restore provides portable backups. WHOOP and Stelo entries are manual; there are no device integrations or clinical interpretations. Imported diary data is part of the private site assets. No other workspace health documents are included.
+Entries carry the day's WHOOP numbers: recovery, sleep hours and resting heart rate on a wake
+entry, day strain on an exercise entry. Imported nutrition is an editable estimate, marked
+with a tilde. Missing WHOOP values are left blank rather than invented.
+
+An earlier version of this diary ran on GitHub Pages and kept everything in browser local
+storage. It was removed once the database version replaced it; it is still in this
+repository's history.
