@@ -13,8 +13,8 @@ It declares two runtime capabilities:
 With neither of them available the page falls back to this browser's local storage and says so
 in the header pill.
 
-The `day-*.json` and `foods.json` files are the six imported days as they were seeded into
-the database. They are a record of the starting state, not something the page reads.
+The six imported days were seeded into the database once, from files kept in this
+repository's history. The live copy is the database itself.
 
 The files in the repository root are the older GitHub Pages version, which stores everything
 in browser local storage and cannot estimate macros.
