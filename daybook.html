@@ -168,6 +168,7 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
   background:var(--accent);color:var(--accent-ink);padding:10px 18px;border-radius:8px;
   box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.bad{background:var(--flag);color:#fff}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media (max-width:720px){
@@ -260,6 +261,8 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
 
     <label class="field">Notes<textarea id="notes" rows="2" placeholder="Portion, ingredients, how it felt"></textarea></label>
 
+    <p class="hint alert" id="save-note" hidden></p>
+
     <div class="actions">
       <button class="btn primary" type="submit">Save entry</button>
       <button class="btn" type="button" id="cancel" hidden>Cancel edit</button>
@@ -293,11 +296,17 @@ const num = v => Number.isFinite(Number(v)) ? Number(v) : 0;
 const dayIds = () => Object.keys(state.days).sort().reverse();
 const theDay = () => state.days[current];
 
-function toast(msg){
+function toast(msg, bad){
   $('toast').textContent = msg;
+  $('toast').classList.toggle('bad', !!bad);
   $('toast').classList.add('show');
   clearTimeout(toast.t);
-  toast.t = setTimeout(() => $('toast').classList.remove('show'), 3600);
+  toast.t = setTimeout(() => $('toast').classList.remove('show'), 5000);
+  // A modal dialog paints above everything, so the toast alone is not enough.
+  if($('sheet').open && bad){
+    $('save-note').textContent = msg;
+    $('save-note').hidden = false;
+  }
 }
 
 function setBackend(mode, text, detail){
@@ -498,6 +507,7 @@ function resetForm(){
   $('sheet-title').textContent = 'Add to your day';
   $('cancel').hidden = true;
   $('remove').hidden = true;
+  $('save-note').hidden = true;
   hideEstimateNote();
   applyKind();
 }
@@ -627,7 +637,7 @@ function saveLocal(){
   try{
     localStorage.setItem(LOCAL_KEY, JSON.stringify({days: state.days, foods: state.foods}));
   }catch(e){
-    toast('This browser would not save. Export a backup.');
+    toast('This browser would not save this entry.', true);
   }
 }
 function loadLocal(){
@@ -682,7 +692,7 @@ $('add').onclick = async () => {
   if(!state.days[id]){
     ensureDay(id);
     try{ await persistDay(id); }
-    catch(err){ toast('Could not start today: ' + ((err && (err.code || err.message)) || 'unknown')); }
+    catch(err){ toast('Could not start today: ' + ((err && (err.code || err.message)) || 'unknown'), true); }
   }
   openSheet(id);
 };
@@ -752,6 +762,7 @@ $('entry').onsubmit = async e => {
   const kind = $('kind').value;
   const name = $('name').value.trim();
   if(!name){ $('name').focus(); return; }
+  $('save-note').hidden = true;
   if(!current) current = $('day').value || todayId();
   const d = ensureDay(current);
 
@@ -776,9 +787,9 @@ $('entry').onsubmit = async e => {
   folded.delete(d.id);
   try{
     await persistDay(d.id);
-    persistFoods().catch(err => toast('Food list not saved: ' + ((err && (err.code || err.message)) || 'unknown')));
+    persistFoods().catch(err => toast('Food list not saved: ' + ((err && (err.code || err.message)) || 'unknown'), true));
   }catch(err){
-    toast('Not saved: ' + ((err && (err.code || err.message)) || 'unknown error'));
+    toast('Not saved: ' + ((err && (err.code || err.message)) || 'unknown error'), true);
     render();
     return;                                   // leave the sheet open with the entry intact
   }
@@ -791,7 +802,7 @@ $('entry').onsubmit = async e => {
 
 window.addEventListener('unhandledrejection', e => {
   const err = e.reason;
-  toast('Problem: ' + ((err && (err.code || err.message)) || 'unknown error'));
+  toast('Problem: ' + ((err && (err.code || err.message)) || 'unknown error'), true);
 });
 
 /* ---------- boot ---------- */
