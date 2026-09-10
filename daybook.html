@@ -41,7 +41,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
 /* ---- chrome ---- */
-.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+.topbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
   padding:12px 22px;background:var(--surface);border-bottom:1px solid var(--line)}
 .mark{display:flex;align-items:baseline;gap:9px;margin-right:2px}
 .glyph{font-size:19px;line-height:1;color:var(--accent)}
@@ -51,7 +51,6 @@ button,input,select,textarea{font:inherit;color:inherit}
   background:var(--sunk);border:1px solid var(--line);color:var(--ink-2);
   font-size:11px;letter-spacing:.03em;text-transform:uppercase}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
-.pill.live .dot{background:var(--accent)}
 .pill.warn{color:var(--flag);border-color:var(--flag)}
 .pill.warn .dot{background:var(--flag)}
 
@@ -64,7 +63,12 @@ button,input,select,textarea{font:inherit;color:inherit}
 .btn.quiet:hover{background:var(--sunk);color:var(--ink)}
 
 main{max-width:1500px;margin:0 auto;padding:16px 22px 56px}
-.tally{color:var(--ink-2);font-size:12px;font-variant-numeric:tabular-nums}
+.icon{width:34px;height:34px;flex:none;padding:0;border-radius:50%;cursor:pointer;
+  display:grid;place-items:center;font-size:16px;line-height:1;
+  border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2)}
+.icon:hover{background:var(--sunk);color:var(--ink)}
+.icon.solid{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-size:19px}
+.icon.solid:hover{filter:brightness(1.1);background:var(--accent);color:var(--accent-ink)}
 
 /* ---- log ---- */
 .log{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
@@ -178,12 +182,11 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
 <header class="topbar">
   <span class="mark"><span class="glyph">◒</span><span class="wordmark">Daybook</span></span>
   <span class="state">
-    <span class="pill" id="backend"><span class="dot"></span><span id="backend-text">Connecting</span></span>
-    <span class="tally" id="tally"></span>
+    <span class="pill warn" id="backend" hidden><span class="dot"></span><span id="backend-text"></span></span>
   </span>
-  <button class="btn quiet" id="expand">Expand all</button>
-  <button class="btn quiet" id="collapse">Collapse all</button>
-  <button class="btn primary" id="add">＋ Add entry</button>
+  <button class="icon" id="expand" aria-label="Expand every day" title="Expand every day">⌄</button>
+  <button class="icon" id="collapse" aria-label="Collapse every day" title="Collapse every day">⌃</button>
+  <button class="icon solid" id="add" aria-label="Add an entry to today" title="Add an entry to today">＋</button>
 </header>
 
 <main>
@@ -291,7 +294,7 @@ function toast(msg){
 
 function setBackend(mode, text){
   state.mode = mode;
-  $('backend').className = 'pill' + (mode === 'db' ? ' live' : mode === 'local' ? ' warn' : '');
+  $('backend').hidden = mode === 'db';
   $('backend-text').textContent = text;
 }
 
@@ -324,10 +327,6 @@ function macroCells(values, estimated){
 
 function render(){
   const ids = dayIds();
-  const entryCount = ids.reduce((n,id) => n + state.days[id].entries.length, 0);
-  $('tally').textContent = state.loaded
-    ? `${ids.length} ${ids.length === 1 ? 'day' : 'days'} · ${entryCount} entries`
-    : '';
 
   if(!ids.length){
     $('log').innerHTML = state.loaded
