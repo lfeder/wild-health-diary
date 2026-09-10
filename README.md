@@ -4,7 +4,7 @@ Static personal diary with six imported days, September 4–9, 2026. Food autoco
 
 Live on GitHub Pages at https://lfeder.github.io/wild-health-diary/, served straight from the repository root. This repository is public, so the diary content is world-readable. There is no build step: push a change to `main` and the site updates.
 
-Exercise entries carry the day's WHOOP strain and wake-up entries carry recovery %, both shown in the WHOOP column and shared with the Rest & recovery panel.
+WHOOP numbers are typed with the entry they belong to: recovery, sleep hours and resting heart rate on a wake-up entry, day strain on an exercise entry. Recovery and strain also show in the WHOOP column.
 
 Run locally: `python3 -m http.server 8080`. Tests: `npm test`.
 

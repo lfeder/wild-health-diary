@@ -23,8 +23,6 @@ function render(){
  }).join('');
  $('entry-day').innerHTML=data.days.slice().sort((a,b)=>b.id.localeCompare(a.id)).map(d=>`<option value="${escape(d.id)}">${escape(d.label)}</option>`).join('');$('entry-day').value=selected;$('entry-day').disabled=!!editing;
  $('foods').innerHTML=data.foods.map(f=>`<option value="${escape(f.name)}"></option>`).join('');
- for(const k of ['recovery','strain','sleep','rhr'])$('metrics').elements[k].value=d.metrics[k]??'';
- const readings=d.entries.filter(e=>e.type==='Glucose').sort((a,b)=>a.time.localeCompare(b.time));$('glucose-summary').textContent=readings.length?'Latest: '+readings.at(-1).glucose+' mg/dL at '+readings.at(-1).time:'No readings logged.';
 }
 function openEditor(id){selected=id;reset();render();$('editor').showModal();$('name').focus();}
 $('close-editor').onclick=()=>$('editor').close();
@@ -32,6 +30,9 @@ $('entry-day').onchange=()=>{selected=$('entry-day').value;render();};
 $('expand').onclick=()=>{collapsed.clear();render();};
 $('collapse').onclick=()=>{data.days.forEach(d=>collapsed.add(d.id));render();};
 // The picker offers these four; Glucose and Note stay editable on entries that already use them.
+// WHOOP numbers are one per day; each is edited on the entry type it belongs to.
+const whoopFields={Sleep:[['recovery','entry-recovery'],['sleep','entry-sleep'],['rhr','entry-rhr']],Exercise:[['strain','entry-strain']]};
+const allWhoopFields=Object.values(whoopFields).flat();
 const entryTypes=[['Sleep','Wake'],['Food','Food'],['Exercise','Exercise'],['Work','Work']];
 function renderTypeToggle(type){
  const shown=entryTypes.some(([t])=>t===type)?entryTypes:[...entryTypes,[type,type]];
@@ -43,24 +44,22 @@ function setType(){const type=$('type').value,food=type==='Food',glucose=type===
  $('suggestions').innerHTML=food?'':DiaryCore.suggestions(data.days,type).map(n=>`<option value="${escape(n)}"></option>`).join('');
  renderTypeToggle(type);
  $('name').setAttribute('list',food?'foods':'suggestions');
- const exercise=type==='Exercise',wake=type==='Sleep';
- $('strain-label').hidden=!exercise;$('recovery-label').hidden=!wake;$('whoop-hint').hidden=!(exercise||wake);
- if(exercise)$('entry-strain').value=day().metrics.strain??'';
- if(wake)$('entry-recovery').value=day().metrics.recovery??'';
+ const fields=whoopFields[type]||[];
+ for(const [,id] of allWhoopFields)$(id.replace('entry-','')+'-label').hidden=!fields.some(f=>f[1]===id);
+ for(const [key,id] of fields)$(id).value=day().metrics[key]??'';
+ $('whoop-hint').hidden=!fields.length;
  $('name').placeholder=food?'Start typing a favorite…':{Exercise:'Start typing an activity…',Glucose:'Reading label, e.g. Post-lunch…',Sleep:'Wake up…'}[type]||'Start typing…';}
 function reset(){editing=null;$('entry-form').reset();$('time').value=new Date().toTimeString().slice(0,5);$('form-title').textContent='Add to your day';$('cancel').hidden=true;setType();}
 $('type').onchange=setType;$('cancel').onclick=()=>{reset();render();};
 $('name').addEventListener('input',()=>{if($('type').value!=='Food')return;const f=data.foods.find(f=>f.name.toLowerCase()===$('name').value.toLowerCase());if(f){macroKeys.forEach(k=>$(k).value=f[k]);$('notes').value=f.notes||'';$('estimated').checked=!!f.estimated;}});
 $('entry-form').onsubmit=e=>{e.preventDefault();const entry={id:editing||crypto.randomUUID(),type:$('type').value,time:$('time').value,name:$('name').value.trim(),notes:$('notes').value};if(!entry.name)return; if(entry.type==='Food'){macroKeys.forEach(k=>entry[k]=Number($(k).value));entry.servings=Number($('servings').value);entry.estimated=$('estimated').checked;const f={name:entry.name,notes:entry.notes,estimated:entry.estimated};macroKeys.forEach(k=>f[k]=entry[k]);const index=data.foods.findIndex(x=>x.name.toLowerCase()===entry.name.toLowerCase());if(index>=0)data.foods[index]=f;else data.foods.push(f);}if(entry.type==='Glucose')entry.glucose=Number($('glucose').value);
- const whoop={Exercise:['strain','entry-strain'],Sleep:['recovery','entry-recovery']}[entry.type];
- if(whoop){const value=$(whoop[1]).value;if(value==='')delete day().metrics[whoop[0]];else day().metrics[whoop[0]]=Number(value);}const i=day().entries.findIndex(x=>x.id===editing);if(i>=0)day().entries[i]=entry;else day().entries.push(entry);const ok=save();collapsed.delete(selected);reset();render();$('editor').close();if(ok)notify('Entry saved');};
+ for(const [key,id] of whoopFields[entry.type]||[]){const value=$(id).value;if(value==='')delete day().metrics[key];else day().metrics[key]=Number(value);}const i=day().entries.findIndex(x=>x.id===editing);if(i>=0)day().entries[i]=entry;else day().entries.push(entry);const ok=save();collapsed.delete(selected);reset();render();$('editor').close();if(ok)notify('Entry saved');};
 $('timeline').onclick=e=>{const button=e.target.closest('button');if(!button)return;const ds=button.dataset;
  if(ds.toggle){collapsed.has(ds.toggle)?collapsed.delete(ds.toggle):collapsed.add(ds.toggle);render();return;}
  if(ds.add){openEditor(ds.add);return;}
  const id=ds.edit||ds.delete;if(!id)return;selected=button.closest('tr').dataset.day;const entry=day().entries.find(x=>x.id===id);
  if(ds.delete){if(confirm('Delete this entry?')){day().entries=day().entries.filter(x=>x.id!==id);save();render();}return;}
  reset();editing=id;render();$('form-title').textContent='Edit entry';$('cancel').hidden=false;for(const k of ['type','time','name','notes','servings','glucose',...macroKeys])$(k).value=entry[k]??(k==='servings'?1:'');$('estimated').checked=!!entry.estimated;setType();$('editor').showModal();};
-$('metrics').onsubmit=e=>{e.preventDefault();day().metrics={};for(const k of ['recovery','strain','sleep','rhr']){const value=$('metrics').elements[k].value;if(value!=='')day().metrics[k]=Number(value);}const ok=save();render();if(ok)notify('Metrics saved');};
 $('today').onclick=()=>{const now=new Date(),id=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');if(!data.days.some(d=>d.id===id))data.days.push({id,label:now.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}),metrics:{},entries:[]});selected=id;save();openEditor(id);};
 $('export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='daybook-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 $('import').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const parsed=JSON.parse(await file.text());if(!DiaryCore.valid(parsed))throw Error('Invalid diary file');if(confirm('Replace the diary in this browser with this backup? Export your current diary first if needed.')){data=DiaryCore.dateImports(parsed);selected=data.days.at(-1).id;save();reset();render();}}catch(error){notify('Could not restore: choose a valid Daybook JSON backup.');}e.target.value='';};
