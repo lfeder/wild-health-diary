@@ -228,7 +228,7 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
     <div class="field" id="kind-label"><span>Entry type</span>
       <div class="segments" id="kinds" role="radiogroup" aria-label="Entry type"></div>
     </div>
-    <input type="hidden" id="kind" value="Sleep">
+    <input type="hidden" id="kind" value="Food">
     <input type="hidden" id="servings" value="1">
 
     <div class="pair" id="whoop-fields" hidden>
@@ -516,7 +516,7 @@ function pastNames(kind){
 function resetForm(){
   editing = null;
   $('entry').reset();
-  $('kind').value = 'Sleep';
+  $('kind').value = 'Food';
   $('time').value = quarterHour();
   $('sheet-title').textContent = 'Add to your day';
   $('cancel').hidden = true;
