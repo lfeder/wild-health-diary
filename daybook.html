@@ -124,9 +124,9 @@ dialog::backdrop{background:rgba(20,32,26,.45)}
   padding:14px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:2}
 .sheet-head h2{font-family:var(--display);font-size:19px;font-weight:600;margin:0}
 form{padding:18px 20px 22px;display:flex;flex-direction:column;gap:13px}
-label.field{display:flex;flex-direction:column;gap:5px;font-size:11px;letter-spacing:.04em;
+.field{display:flex;flex-direction:column;gap:5px;font-size:11px;letter-spacing:.04em;
   text-transform:uppercase;color:var(--ink-2)}
-label.field input,label.field select,label.field textarea{
+.field input,.field select,.field textarea{
   font-size:16px;text-transform:none;letter-spacing:0;color:var(--ink);
   padding:9px 10px;border:1px solid var(--line-strong);border-radius:6px;background:var(--ground);
   width:100%;min-width:0}
@@ -151,7 +151,7 @@ textarea{resize:vertical;min-height:56px}
 .segments button[aria-checked="true"]{background:var(--accent);color:var(--accent-ink);font-weight:500}
 
 .namerow{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
-.namerow label.field{flex:1 1 200px;min-width:0}
+.namerow .field{flex:1 1 200px;min-width:0}
 .namerow .btn{flex:0 0 auto;white-space:nowrap}
 fieldset{border:1px solid var(--line);border-radius:8px;padding:13px;margin:0;display:flex;flex-direction:column;gap:11px}
 legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);padding:0 6px}
@@ -223,10 +223,12 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
       <label class="field">Time<input id="time" type="time" required></label>
     </div>
 
-    <label class="field" id="kind-label">Entry type
+    <!-- A div, not a label: a label forwards clicks to its first labelable
+         descendant, so every segment button activated the first one. -->
+    <div class="field" id="kind-label"><span>Entry type</span>
       <div class="segments" id="kinds" role="radiogroup" aria-label="Entry type"></div>
-    </label>
-    <input type="hidden" id="kind" value="Food">
+    </div>
+    <input type="hidden" id="kind" value="Sleep">
     <input type="hidden" id="servings" value="1">
 
     <div class="pair" id="whoop-fields" hidden>
