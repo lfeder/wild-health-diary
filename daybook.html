@@ -131,12 +131,6 @@ tr.item:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .legend .filling i{background:var(--ink-3)}
 .legend .pace i{width:2px;background:var(--ink);opacity:.5}
 
-.daytype{flex:none;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2);
-  border-radius:100px;padding:1px 8px;cursor:pointer;font-size:10px;letter-spacing:.04em;
-  text-transform:uppercase;line-height:1.6}
-.daytype:hover{background:var(--sunk);color:var(--ink)}
-.daytype.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
-
 .whoop{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:12px}
 tr.day .whoop{color:var(--ink);font-weight:600}
 .empty{color:var(--ink-3);font-style:italic}
@@ -348,7 +342,7 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
     <button class="btn quiet" id="goals-close">Close</button>
   </div>
   <form id="goals-form">
-    <p class="hint">Day totals are measured against these. A day counts as a training day when it has an exercise entry, unless you say otherwise on the day itself.</p>
+    <p class="hint">Day totals are measured against these. A day with an exercise entry on it counts as a training day.</p>
     <div class="pair">
       <fieldset><legend>Training day</legend><div id="t-training"></div></fieldset>
       <fieldset><legend>Non-training day</legend><div id="t-rest"></div></fieldset>
@@ -453,11 +447,9 @@ function totals(entries){
   }, {calories:0, protein:0, carbs:0, fat:0});
 }
 
-// Tennis days and rest days have their own numbers. A day with exercise on it
-// is a training day unless the viewer has said otherwise on that day.
-function isTraining(d){
-  return typeof d.training === 'boolean' ? d.training : d.entries.some(e => e.type === 'Exercise');
-}
+// Tennis days and rest days have their own numbers. An exercise entry on the
+// day is what makes it a training day.
+const isTraining = d => d.entries.some(e => e.type === 'Exercise');
 const targetsFor = d => state.targets[isTraining(d) ? 'training' : 'rest'];
 
 // How far through the eating day it is, for today only. Other days are done.
@@ -490,17 +482,17 @@ function whoopText(d, type){
     .join(' · ');
 }
 const MACRO_COL = ['', 'c-pro', 'c-carb', 'c-fat'];
-function macroCells(values, target, pace){
+function macroCells(values, target, pace, kind){
   return MACROS.map((k,i) =>
     `<td class="num ${MACRO_COL[i]}"><span class="v">${Math.round(values[k]).toLocaleString()}${i ? 'g' : ''}</span>` +
-    (target ? gauge(k, values[k], target[k], pace) : '') + '</td>'
+    (target ? gauge(k, values[k], target[k], pace, kind) : '') + '</td>'
   ).join('');
 }
 
 /* A four-pixel read of one macro against its range. Two notches mark the
    bottom and top of the range; the fill turns green inside it and amber past
    it. The track runs a quarter beyond the top so going over still shows. */
-function gauge(key, total, range, pace){
+function gauge(key, total, range, pace, kind){
   const lo = num(range && range[0]);
   const hi = num(range && range[1]) || lo;
   if(hi <= 0) return '';
@@ -515,7 +507,8 @@ function gauge(key, total, range, pace){
     marks = `<span class="edge" style="left:${at(lo)}%"></span>` + marks;
   }
 
-  let tip = show(total) + ' of ' + (lo < hi ? show(lo) + '–' + show(hi) : show(hi)) + MACRO_UNIT[key];
+  let tip = show(total) + ' of ' + (lo < hi ? show(lo) + '–' + show(hi) : show(hi)) + MACRO_UNIT[key] +
+    ' on a ' + kind + ' day';
   tip += total > hi ? ' · over by ' + show(total - hi)
        : total >= lo ? ' · on target'
        : ' · short by ' + show(lo - total);
@@ -566,17 +559,14 @@ function renderDay(id){
   const open = !folded.has(id);
   const sum = totals(d.entries);
   const shown = dayDisplay(id);
-  const train = isTraining(d);
   const head = `<tr class="day">
     <th scope="row"><span class="dayhead">
       <button class="addhere" data-new="${esc(id)}" aria-label="Add an entry to ${esc(shown)}" title="Add an entry to ${esc(shown)}">＋</button>
       <button class="disclose" data-fold="${esc(id)}" aria-expanded="${open}"><span class="caret">${open ? '▾' : '▸'}</span>${esc(shown)}</button>
-      <button class="daytype${train ? ' on' : ''}" data-train="${esc(id)}" aria-pressed="${train}"
-        title="Measured against your ${train ? 'training' : 'non-training'} day targets. Click to switch.">${train ? 'Training' : 'Rest'}</button>
     </span></th>
     <td class="c-time"></td>
     <td></td>
-    ${macroCells(sum, targetsFor(d), paceNow(id))}
+    ${macroCells(sum, targetsFor(d), paceNow(id), isTraining(d) ? 'training' : 'non-training')}
     <td class="whoop c-whoop">${esc(whoopText(d))}</td>
   </tr>`;
   if(!open) return head;
@@ -843,7 +833,7 @@ function dayLabel(id){
 // A day created here may not be in the store yet, and an incoming snapshot
 // rebuilds state.days from the store alone. Re-create rather than lose it.
 function ensureDay(id){
-  if(!state.days[id]) state.days[id] = {id, label: dayLabel(id), metrics:{}, entries:[], training:null};
+  if(!state.days[id]) state.days[id] = {id, label: dayLabel(id), metrics:{}, entries:[]};
   return state.days[id];
 }
 
@@ -856,7 +846,6 @@ function normaliseDay(id, raw){
     id,
     label: typeof d.label === 'string' && d.label ? d.label : id,
     metrics: (d.metrics && typeof d.metrics === 'object') ? {...d.metrics} : {},
-    training: typeof d.training === 'boolean' ? d.training : null,
     entries: Array.isArray(d.entries) ? d.entries.map(e => ({...e})) : []
   };
 }
@@ -876,7 +865,7 @@ async function persistDay(id){
   if(!d) return;
   saveLocal();                                 // a local copy, whatever the store does
   if(!store){ render(); return; }
-  await within(store.doc('days/' + id).set({label:d.label, metrics:d.metrics, training:d.training, entries:d.entries}), 12000);
+  await within(store.doc('days/' + id).set({label:d.label, metrics:d.metrics, entries:d.entries}), 12000);
 }
 async function persistFoods(){
   saveLocal();
@@ -1054,13 +1043,6 @@ $('log').onclick = e => {
       render();
     } else if(b.dataset.new){
       openSheet(b.dataset.new);
-    } else if(b.dataset.train){
-      const d = state.days[b.dataset.train];
-      if(d){
-        d.training = !isTraining(d);
-        render();
-        persistDay(d.id).catch(err => toast('Day type not saved: ' + ((err && (err.code || err.message)) || 'unknown'), true));
-      }
     }
     return;
   }
