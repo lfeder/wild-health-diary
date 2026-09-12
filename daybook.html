@@ -116,9 +116,10 @@ tr.item:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .gauge{display:block;position:relative;height:4px;margin-top:4px;border-radius:2px;
   background:var(--line);overflow:hidden}
 .gauge .band{position:absolute;top:0;bottom:0;background:var(--line-strong)}
-.gauge .fill{position:absolute;inset:0 auto 0 0;background:var(--ink-3);border-radius:2px}
+.gauge .fill{position:absolute;inset:0 auto 0 0;background:var(--flag);border-radius:2px}
 .gauge.hit .fill{background:var(--accent)}
-.gauge.over .fill{background:var(--flag)}
+/* Today is not off target yet, it is unfinished. */
+.gauge.filling .fill{background:var(--ink-3)}
 .gauge .edge{position:absolute;top:0;bottom:0;width:1px;background:var(--surface)}
 .gauge .pace{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ink);opacity:.5}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;
@@ -127,7 +128,7 @@ tr.item:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .legend i{display:inline-block;width:16px;height:4px;border-radius:2px;
   vertical-align:middle;margin-right:5px;background:var(--ink-3)}
 .legend .hit i{background:var(--accent)}
-.legend .over i{background:var(--flag)}
+.legend .filling i{background:var(--ink-3)}
 .legend .pace i{width:2px;background:var(--ink);opacity:.5}
 
 .daytype{flex:none;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2);
@@ -271,9 +272,9 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
   </div>
   <p class="legend">
     <span><b>Day totals against your targets:</b></span>
-    <span><i></i>under</span>
     <span class="hit"><i></i>in range</span>
-    <span class="over"><i></i>over</span>
+    <span><i></i>off target, short or over</span>
+    <span class="filling"><i></i>today, still filling</span>
     <span class="pace"><i></i>where today should be by now</span>
   </p>
 </main>
@@ -515,12 +516,18 @@ function gauge(key, total, range, pace){
   }
 
   let tip = show(total) + ' of ' + (lo < hi ? show(lo) + '–' + show(hi) : show(hi)) + MACRO_UNIT[key];
+  tip += total > hi ? ' · over by ' + show(total - hi)
+       : total >= lo ? ' · on target'
+       : ' · short by ' + show(lo - total);
   if(pace != null){
     const due = (lo + hi) / 2 * pace;
     marks += `<span class="pace" data-mid="${((lo + hi) / 2).toFixed(2)}" data-span="${span.toFixed(2)}" style="left:${at(due)}%"></span>`;
     tip += ' · ' + show(due) + ' by now to stay on pace';
   }
-  const how = total > hi ? ' over' : total >= lo && lo > 0 ? ' hit' : '';
+  // Short and over are both off target. A day still being eaten is neither.
+  const how = total >= lo && total <= hi && lo > 0 ? ' hit'
+            : total < lo && pace != null && pace < 1 ? ' filling'
+            : '';
   return `<span class="gauge${how}" title="${esc(tip)}">${band}` +
     `<span class="fill" style="width:${at(total)}%"></span>${marks}</span>`;
 }
@@ -958,7 +965,7 @@ function renderPantry(){
     ? n + ' saved. Changing one here changes what fills in next time, not anything already logged.'
     : 'Nothing saved yet.';
   $('pantry-list').innerHTML = n
-    ? state.foods.map(f => `<li class="pfood">
+    ? state.foods.map((f,i) => `<li class="pfood" data-i="${i}">
         <input class="pname" value="${esc(f.name || '')}" maxlength="250" aria-label="Name">
         <div class="pmac">
           ${MACROS.map(k => `<label class="pm"><span>${k === 'calories' ? 'kcal' : esc(k)}</span>` +
@@ -983,7 +990,9 @@ $('pantry-form').onsubmit = async e => {
   for(const row of $('pantry-list').querySelectorAll('.pfood')){
     const name = row.querySelector('.pname').value.trim();
     if(!name) continue;                    // a food with no name cannot be matched
-    const food = {name, notes: row.querySelector('.pnotes').value};
+    // Start from the stored row so fields this editor does not show survive.
+    const was = state.foods[Number(row.dataset.i)] || {};
+    const food = {...was, name, notes: row.querySelector('.pnotes').value};
     for(const k of MACROS) food[k] = num(row.querySelector('.p-' + k).value);
     next.push(food);
   }
