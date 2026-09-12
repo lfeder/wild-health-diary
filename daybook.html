@@ -291,6 +291,11 @@ const state = { days:{}, foods:[], loaded:false, mode:'connecting' };
 const folded = new Set();
 let store = null, ask = null, editing = null, current = null;
 let pool = [], active = -1;
+/* The notes box mixes two voices: what the diarist typed and what the app
+   wrote for them (a library autofill, or an estimate's assumptions). Only the
+   app's half is tracked here, so a later fill can replace it instead of
+   leaving it behind and feeding it back to Claude as the diarist's own words. */
+let autoNotes = '';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num = v => Number.isFinite(Number(v)) ? Number(v) : 0;
@@ -491,13 +496,28 @@ function pick(name){
   $('name').focus();
 }
 
+// What the diarist typed, with any note the app wrote itself stripped back off.
+function typedNotes(){
+  const all = $('notes').value.trim();
+  if(!autoNotes) return all;
+  if(all === autoNotes) return '';
+  // Edited by hand past recognition: whatever is there is theirs now.
+  return all.endsWith('\n' + autoNotes) ? all.slice(0, -(autoNotes.length + 1)).trim() : all;
+}
+// Rewrite the notes box as the diarist's own words plus a fresh note from us.
+function setNotes(typed, auto){
+  autoNotes = (auto || '').trim();
+  $('notes').value = [typed, autoNotes].filter(Boolean).join('\n');
+}
+
 // A saved food carries its macros forward from the last time it was logged.
 function fillFromLibrary(){
   if($('kind').value !== 'Food') return;
   const match = state.foods.find(f => (f.name || '').toLowerCase() === $('name').value.trim().toLowerCase());
-  if(!match) return;
+  // Typing past a match leaves its note describing a food that is no longer here.
+  if(!match){ if(autoNotes) setNotes(typedNotes(), ''); return; }
   for(const k of MACROS) $(k).value = num(match[k]);
-  if(match.notes) $('notes').value = match.notes;
+  if(match.notes) setNotes(typedNotes(), match.notes);
   showEstimateNote('Filled in from the last time you logged this.', false);
 }
 
@@ -522,6 +542,7 @@ function resetForm(){
   $('cancel').hidden = true;
   $('remove').hidden = true;
   $('save-note').hidden = true;
+  autoNotes = '';
   hideEstimateNote();
   applyKind();
 }
@@ -558,7 +579,7 @@ const ESTIMATE_RULES = [
 async function estimateMacros(){
   const text = $('name').value.trim();
   if(!text){ $('name').focus(); return; }
-  const extra = $('notes').value.trim();
+  const extra = typedNotes();
   $('estimate').disabled = true;
   showEstimateNote('Asking Claude…', false);
   try{
@@ -572,7 +593,7 @@ async function estimateMacros(){
     if(Number.isFinite(Number(reply.servings)) && Number(reply.servings) > 0) $('servings').value = Number(reply.servings);
     if(typeof reply.name === 'string' && reply.name.trim()) $('name').value = reply.name.trim();
     if(typeof reply.assumptions === 'string' && reply.assumptions.trim()){
-      $('notes').value = extra ? extra + '\n' + reply.assumptions.trim() : reply.assumptions.trim();
+      setNotes(extra, reply.assumptions);
     }
     showEstimateNote('Claude estimated these. Correct anything that looks off before saving.', false);
   }catch(err){
