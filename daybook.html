@@ -85,7 +85,7 @@ th.num,td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
 thead th:nth-child(1){width:104px}
 thead th:nth-child(2){width:64px}
 thead th.c-whoop{width:170px}
-thead th.num{width:74px}
+thead th.num{width:88px}
 
 tr.day>*{background:var(--band);border-bottom:1px solid var(--line-strong);padding-top:5px;padding-bottom:5px;vertical-align:middle}
 tr.day+tr.day>*,tr.day:not(:first-child)>*{border-top:1px solid var(--surface)}
@@ -110,6 +110,32 @@ tr.item:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .portion{margin-top:2px;font-size:11px;color:var(--ink-3)}
 .portion summary{cursor:pointer;list-style-position:inside}
 .portion p{margin:5px 0 0;white-space:pre-wrap;max-width:65ch}
+.v{display:block}
+/* A hairline read of the day against the doctor's range. Notches mark the
+   bottom and top of the range; the pace line is where today should be by now. */
+.gauge{display:block;position:relative;height:4px;margin-top:4px;border-radius:2px;
+  background:var(--line);overflow:hidden}
+.gauge .band{position:absolute;top:0;bottom:0;background:var(--line-strong)}
+.gauge .fill{position:absolute;inset:0 auto 0 0;background:var(--ink-3);border-radius:2px}
+.gauge.hit .fill{background:var(--accent)}
+.gauge.over .fill{background:var(--flag)}
+.gauge .edge{position:absolute;top:0;bottom:0;width:1px;background:var(--surface)}
+.gauge .pace{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ink);opacity:.5}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;
+  margin:7px 2px 0;font-size:11px;color:var(--ink-3)}
+.legend b{font-weight:500;color:var(--ink-2)}
+.legend i{display:inline-block;width:16px;height:4px;border-radius:2px;
+  vertical-align:middle;margin-right:5px;background:var(--ink-3)}
+.legend .hit i{background:var(--accent)}
+.legend .over i{background:var(--flag)}
+.legend .pace i{width:2px;background:var(--ink);opacity:.5}
+
+.daytype{flex:none;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2);
+  border-radius:100px;padding:1px 8px;cursor:pointer;font-size:10px;letter-spacing:.04em;
+  text-transform:uppercase;line-height:1.6}
+.daytype:hover{background:var(--sunk);color:var(--ink)}
+.daytype.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+
 .whoop{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:12px}
 tr.day .whoop{color:var(--ink);font-weight:600}
 .empty{color:var(--ink-3);font-style:italic}
@@ -162,6 +188,33 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
 .actions{display:flex;gap:9px;align-items:center;padding-top:2px}
 .actions .spacer{flex:1}
 
+/* ---- targets and the pantry ---- */
+.trow{display:grid;grid-template-columns:minmax(52px,auto) 1fr auto 1fr;gap:7px;align-items:center;
+  font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.trow+.trow{margin-top:9px}
+.trow input{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);
+  padding:7px 9px;border:1px solid var(--line-strong);border-radius:6px;background:var(--ground);
+  width:100%;min-width:0;text-align:right;font-variant-numeric:tabular-nums}
+/* The spinner arrows steal the width a four figure calorie target needs. */
+.trow input::-webkit-outer-spin-button,.trow input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.trow input,.pmac input{-moz-appearance:textfield}
+.trow .to{color:var(--ink-3)}
+
+.pantry{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;
+  max-height:46vh;overflow-y:auto}
+.pfood{display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--line);
+  border-radius:8px;background:var(--ground)}
+.pfood input{font-size:15px;color:var(--ink);padding:7px 8px;border:1px solid var(--line-strong);
+  border-radius:6px;background:var(--surface);width:100%;min-width:0}
+.pfood .pnotes{font-size:13px;color:var(--ink-2)}
+.pmac{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:6px;align-items:end}
+.pmac input{text-align:right;font-variant-numeric:tabular-nums}
+.pmac input::-webkit-outer-spin-button,.pmac input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.pm{display:flex;flex-direction:column;gap:3px;min-width:0;
+  font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+.pmac .btn{padding:6px 9px;font-size:12px;white-space:nowrap}
+.pantry .empty{padding:14px 2px}
+
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(8px);
   background:var(--accent);color:var(--accent-ink);padding:10px 18px;border-radius:8px;
   box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9}
@@ -171,7 +224,7 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media (max-width:720px){
   /* Every column stays; the table scrolls sideways inside its own box. */
-  thead th.num{width:62px}
+  thead th.num{width:70px}
   .topbar{padding:10px 12px;gap:7px;flex-wrap:nowrap}
   .wordmark{font-size:20px}
   .icon{width:32px;height:32px}
@@ -183,6 +236,10 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
   .addhere{width:32px;height:32px;font-size:17px}
   .disclose{font-size:14px}
   .quad{grid-template-columns:1fr 1fr}
+  /* Side by side, the two day types squeeze the number fields to slivers. */
+  #goals-form .pair{grid-template-columns:1fr}
+  .pmac{grid-template-columns:repeat(4,1fr);gap:5px}
+  .pmac .btn{grid-column:1/-1;justify-self:start}
 }
 </style>
 
@@ -191,6 +248,8 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
   <button class="icon solid" id="add" aria-label="Add an entry to today" title="Add an entry to today">＋</button>
   <button class="icon" id="expand" aria-label="Expand every day" title="Expand every day">⌄</button>
   <button class="icon" id="collapse" aria-label="Collapse every day" title="Collapse every day">⌃</button>
+  <button class="icon" id="open-goals" aria-label="Macro targets" title="Macro targets">◎</button>
+  <button class="icon" id="open-pantry" aria-label="Recurring foods" title="Recurring foods">☰</button>
   <span class="state">
     <span class="pill warn" id="backend" hidden><span class="dot"></span><span id="backend-text"></span></span>
   </span>
@@ -210,6 +269,13 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
       <tbody id="log"></tbody>
     </table>
   </div>
+  <p class="legend">
+    <span><b>Day totals against your targets:</b></span>
+    <span><i></i>under</span>
+    <span class="hit"><i></i>in range</span>
+    <span class="over"><i></i>over</span>
+    <span class="pace"><i></i>where today should be by now</span>
+  </p>
 </main>
 
 <dialog id="sheet">
@@ -262,6 +328,8 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
 
     <label class="field">Notes<textarea id="notes" rows="2" placeholder="Portion, ingredients, how it felt"></textarea></label>
 
+    <label class="check" id="keep-label" hidden><input type="checkbox" id="keep">Keep as a recurring food, so its macros fill in next time</label>
+
     <p class="hint alert" id="save-note" hidden></p>
 
     <div class="actions">
@@ -269,6 +337,39 @@ legend{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--
       <button class="btn" type="button" id="cancel" hidden>Cancel edit</button>
       <span class="spacer"></span>
       <button class="btn quiet" type="button" id="remove" hidden>Delete entry</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="goals">
+  <div class="sheet-head">
+    <h2>Macro targets</h2>
+    <button class="btn quiet" id="goals-close">Close</button>
+  </div>
+  <form id="goals-form">
+    <p class="hint">Day totals are measured against these. A day counts as a training day when it has an exercise entry, unless you say otherwise on the day itself.</p>
+    <div class="pair">
+      <fieldset><legend>Training day</legend><div id="t-training"></div></fieldset>
+      <fieldset><legend>Non-training day</legend><div id="t-rest"></div></fieldset>
+    </div>
+    <div class="actions">
+      <button class="btn primary" type="submit">Save targets</button>
+      <span class="spacer"></span>
+      <button class="btn quiet" type="button" id="goals-reset">Back to the defaults</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="pantry">
+  <div class="sheet-head">
+    <h2>Recurring foods</h2>
+    <button class="btn quiet" id="pantry-close">Close</button>
+  </div>
+  <form id="pantry-form">
+    <p class="hint" id="pantry-hint"></p>
+    <ul class="pantry" id="pantry-list"></ul>
+    <div class="actions">
+      <button class="btn primary" type="submit">Save changes</button>
     </div>
   </form>
 </dialog>
@@ -286,11 +387,29 @@ const WHOOP = {
 };
 const ALL_WHOOP = Object.values(WHOOP).flat();
 const LOCAL_KEY = 'daybook-offline-v1';
+const MACRO_NAME = {calories:'Calories', protein:'Protein g', carbs:'Carbs g', fat:'Fat g'};
+const MACRO_UNIT = {calories:' kcal', protein:'g protein', carbs:'g carbs', fat:'g fat'};
 
-const state = { days:{}, foods:[], loaded:false, mode:'connecting' };
+/* From the doctor, as ranges. Calories came as a single number, 2,500 and
+   2,100, so they sit here as that number give or take 100; every figure is
+   editable under the targets button. */
+const DEFAULT_TARGETS = {
+  training: {calories:[2400,2600], protein:[160,170], carbs:[260,280], fat:[75,80]},
+  rest:     {calories:[2000,2200], protein:[150,155], carbs:[180,200], fat:[65,70]}
+};
+const copyTargets = t => Object.fromEntries(Object.entries(t).map(
+  ([set,macros]) => [set, Object.fromEntries(MACROS.map(k => [k, [num(macros[k] && macros[k][0]), num(macros[k] && macros[k][1])]]))]
+));
+// The stretch of the clock a day's eating is paced over.
+const EAT_FROM = 7 * 60, EAT_TO = 21 * 60;
+
+const state = { days:{}, foods:[], targets:null, loaded:false, mode:'connecting' };
 const folded = new Set();
 let store = null, ask = null, editing = null, current = null;
 let pool = [], active = -1;
+// The library row the form was last filled from, so typing on does not
+// silently keep overwriting macros the viewer has since corrected.
+let filledFrom = '';
 /* The notes box mixes two voices: what the diarist typed and what the app
    wrote for them (a library autofill, or an estimate's assumptions). Only the
    app's half is tracked here, so a later fill can replace it instead of
@@ -300,6 +419,7 @@ let autoNotes = '';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num = v => Number.isFinite(Number(v)) ? Number(v) : 0;
 const dayIds = () => Object.keys(state.days).sort().reverse();
+state.targets = copyTargets(DEFAULT_TARGETS);
 const theDay = () => state.days[current];
 
 function toast(msg, bad){
@@ -332,6 +452,21 @@ function totals(entries){
   }, {calories:0, protein:0, carbs:0, fat:0});
 }
 
+// Tennis days and rest days have their own numbers. A day with exercise on it
+// is a training day unless the viewer has said otherwise on that day.
+function isTraining(d){
+  return typeof d.training === 'boolean' ? d.training : d.entries.some(e => e.type === 'Exercise');
+}
+const targetsFor = d => state.targets[isTraining(d) ? 'training' : 'rest'];
+
+// How far through the eating day it is, for today only. Other days are done.
+function paceNow(id){
+  if(id !== todayId()) return null;
+  const now = new Date();
+  const mins = now.getHours() * 60 + now.getMinutes();
+  return Math.max(0, Math.min(1, (mins - EAT_FROM) / (EAT_TO - EAT_FROM)));
+}
+
 /* ---------- rendering ---------- */
 // Sep 9 2026 reads as 09/09. Derived from the id, so a day always shows
 // the same way however its label was stored.
@@ -354,11 +489,53 @@ function whoopText(d, type){
     .join(' · ');
 }
 const MACRO_COL = ['', 'c-pro', 'c-carb', 'c-fat'];
-function macroCells(values){
+function macroCells(values, target, pace){
   return MACROS.map((k,i) =>
-    `<td class="num ${MACRO_COL[i]}">${Math.round(values[k]).toLocaleString()}${i ? 'g' : ''}</td>`
+    `<td class="num ${MACRO_COL[i]}"><span class="v">${Math.round(values[k]).toLocaleString()}${i ? 'g' : ''}</span>` +
+    (target ? gauge(k, values[k], target[k], pace) : '') + '</td>'
   ).join('');
 }
+
+/* A four-pixel read of one macro against its range. Two notches mark the
+   bottom and top of the range; the fill turns green inside it and amber past
+   it. The track runs a quarter beyond the top so going over still shows. */
+function gauge(key, total, range, pace){
+  const lo = num(range && range[0]);
+  const hi = num(range && range[1]) || lo;
+  if(hi <= 0) return '';
+  const span = Math.max(hi * 1.25, total, 1);
+  const at = v => (Math.max(0, Math.min(v, span)) / span * 100).toFixed(1);
+  const show = v => Math.round(v).toLocaleString();
+
+  // The window itself is shaded, so an unfilled bar still shows what it is aiming at.
+  let band = '', marks = `<span class="edge" style="left:${at(hi)}%"></span>`;
+  if(lo > 0 && lo < hi){
+    band = `<span class="band" style="left:${at(lo)}%;width:${(at(hi) - at(lo)).toFixed(1)}%"></span>`;
+    marks = `<span class="edge" style="left:${at(lo)}%"></span>` + marks;
+  }
+
+  let tip = show(total) + ' of ' + (lo < hi ? show(lo) + '–' + show(hi) : show(hi)) + MACRO_UNIT[key];
+  if(pace != null){
+    const due = (lo + hi) / 2 * pace;
+    marks += `<span class="pace" data-mid="${((lo + hi) / 2).toFixed(2)}" data-span="${span.toFixed(2)}" style="left:${at(due)}%"></span>`;
+    tip += ' · ' + show(due) + ' by now to stay on pace';
+  }
+  const how = total > hi ? ' over' : total >= lo && lo > 0 ? ' hit' : '';
+  return `<span class="gauge${how}" title="${esc(tip)}">${band}` +
+    `<span class="fill" style="width:${at(total)}%"></span>${marks}</span>`;
+}
+
+// The pace line drifts with the clock, so nudge it without rebuilding the
+// table, which would throw away the viewer's sideways scroll.
+function movePace(){
+  const pace = paceNow(todayId());
+  if(pace == null) return;
+  for(const el of document.querySelectorAll('.pace[data-mid]')){
+    const due = Number(el.dataset.mid) * pace, span = Number(el.dataset.span);
+    if(span > 0) el.style.left = (Math.max(0, Math.min(due, span)) / span * 100).toFixed(1) + '%';
+  }
+}
+setInterval(movePace, 60000);
 
 function render(){
   const ids = dayIds();
@@ -382,14 +559,17 @@ function renderDay(id){
   const open = !folded.has(id);
   const sum = totals(d.entries);
   const shown = dayDisplay(id);
+  const train = isTraining(d);
   const head = `<tr class="day">
     <th scope="row"><span class="dayhead">
       <button class="addhere" data-new="${esc(id)}" aria-label="Add an entry to ${esc(shown)}" title="Add an entry to ${esc(shown)}">＋</button>
       <button class="disclose" data-fold="${esc(id)}" aria-expanded="${open}"><span class="caret">${open ? '▾' : '▸'}</span>${esc(shown)}</button>
+      <button class="daytype${train ? ' on' : ''}" data-train="${esc(id)}" aria-pressed="${train}"
+        title="Measured against your ${train ? 'training' : 'non-training'} day targets. Click to switch.">${train ? 'Training' : 'Rest'}</button>
     </span></th>
     <td class="c-time"></td>
     <td></td>
-    ${macroCells(sum)}
+    ${macroCells(sum, targetsFor(d), paceNow(id))}
     <td class="whoop c-whoop">${esc(whoopText(d))}</td>
   </tr>`;
   if(!open) return head;
@@ -433,6 +613,7 @@ function applyKind(){
   $('name-label').firstChild.textContent = food ? 'What you ate' : kind === 'Sleep' ? 'How you woke up' : 'Activity';
   $('name').placeholder = food ? 'Describe it in plain English' : kind === 'Exercise' ? 'Tennis, bike, lift…' : kind === 'Sleep' ? 'Wake up' : 'What you worked on';
   $('estimate').hidden = !(food && ask);
+  $('keep-label').hidden = !food;
   if(!food) hideEstimateNote();
 
   const fields = WHOOP[kind] || [];
@@ -450,7 +631,12 @@ function applyKind(){
 // rewrite fields the viewer may be part way through filling in.
 function refreshPool(){
   const kind = $('kind').value;
-  pool = kind === 'Food' ? state.foods.map(f => f.name) : pastNames(kind);
+  // Saved foods first, then anything eaten before, so a food that was never
+  // kept still autocompletes even though it carries no macros.
+  if(kind !== 'Food'){ pool = pastNames(kind); return; }
+  const saved = state.foods.map(f => f.name).filter(Boolean);
+  const known = new Set(saved.map(n => n.toLowerCase()));
+  pool = saved.concat(pastNames('Food').filter(n => !known.has(n.toLowerCase())));
 }
 
 /* A hand-built suggestion list. The native datalist collapses into a
@@ -510,15 +696,25 @@ function setNotes(typed, auto){
   $('notes').value = [typed, autoNotes].filter(Boolean).join('\n');
 }
 
-// A saved food carries its macros forward from the last time it was logged.
+// A recurring food carries its macros forward from the last time it was logged.
 function fillFromLibrary(){
   if($('kind').value !== 'Food') return;
-  const match = state.foods.find(f => (f.name || '').toLowerCase() === $('name').value.trim().toLowerCase());
-  // Typing past a match leaves its note describing a food that is no longer here.
-  if(!match){ if(autoNotes) setNotes(typedNotes(), ''); return; }
+  const typed = $('name').value.trim().toLowerCase();
+  const match = state.foods.find(f => (f.name || '').toLowerCase() === typed);
+  if(!match){
+    // Typing past a match leaves a note describing a food that is no longer here.
+    if(filledFrom){
+      if(autoNotes) setNotes(typedNotes(), '');
+      $('keep').checked = false;
+      filledFrom = '';
+    }
+    return;
+  }
+  if(filledFrom === typed) return;          // already filled; leave any corrections alone
+  filledFrom = typed;
   for(const k of MACROS) $(k).value = num(match[k]);
   if(match.notes) setNotes(typedNotes(), match.notes);
-  showEstimateNote('Filled in from the last time you logged this.', false);
+  $('keep').checked = true;
 }
 
 // Past entry names of one type, most recent first, so repeat activities autocomplete.
@@ -543,6 +739,8 @@ function resetForm(){
   $('remove').hidden = true;
   $('save-note').hidden = true;
   autoNotes = '';
+  filledFrom = '';
+  $('keep').checked = false;
   hideEstimateNote();
   applyKind();
 }
@@ -595,7 +793,7 @@ async function estimateMacros(){
     if(typeof reply.assumptions === 'string' && reply.assumptions.trim()){
       setNotes(extra, reply.assumptions);
     }
-    showEstimateNote('Claude estimated these. Correct anything that looks off before saving.', false);
+    hideEstimateNote();
   }catch(err){
     const code = err && err.code;
     // Never hide the button on a refusal: a denial only lasts this page
@@ -638,7 +836,7 @@ function dayLabel(id){
 // A day created here may not be in the store yet, and an incoming snapshot
 // rebuilds state.days from the store alone. Re-create rather than lose it.
 function ensureDay(id){
-  if(!state.days[id]) state.days[id] = {id, label: dayLabel(id), metrics:{}, entries:[]};
+  if(!state.days[id]) state.days[id] = {id, label: dayLabel(id), metrics:{}, entries:[], training:null};
   return state.days[id];
 }
 
@@ -651,6 +849,7 @@ function normaliseDay(id, raw){
     id,
     label: typeof d.label === 'string' && d.label ? d.label : id,
     metrics: (d.metrics && typeof d.metrics === 'object') ? {...d.metrics} : {},
+    training: typeof d.training === 'boolean' ? d.training : null,
     entries: Array.isArray(d.entries) ? d.entries.map(e => ({...e})) : []
   };
 }
@@ -670,16 +869,20 @@ async function persistDay(id){
   if(!d) return;
   saveLocal();                                 // a local copy, whatever the store does
   if(!store){ render(); return; }
-  await within(store.doc('days/' + id).set({label:d.label, metrics:d.metrics, entries:d.entries}), 12000);
+  await within(store.doc('days/' + id).set({label:d.label, metrics:d.metrics, training:d.training, entries:d.entries}), 12000);
 }
 async function persistFoods(){
   saveLocal();
   if(store) await within(store.doc('library/foods').set({foods: state.foods}), 12000);
 }
+async function persistTargets(){
+  saveLocal();
+  if(store) await within(store.doc('settings/targets').set({targets: state.targets}), 12000);
+}
 
 function saveLocal(){
   try{
-    localStorage.setItem(LOCAL_KEY, JSON.stringify({days: state.days, foods: state.foods}));
+    localStorage.setItem(LOCAL_KEY, JSON.stringify({days: state.days, foods: state.foods, targets: state.targets}));
   }catch(e){
     toast('This browser would not save this entry.', true);
   }
@@ -691,15 +894,106 @@ function loadLocal(){
     const parsed = JSON.parse(raw);
     if(parsed && parsed.days) for(const [id,d] of Object.entries(parsed.days)) state.days[id] = normaliseDay(id, d);
     if(parsed && Array.isArray(parsed.foods)) state.foods = parsed.foods;
+    if(parsed && parsed.targets) state.targets = copyTargets({...DEFAULT_TARGETS, ...parsed.targets});
   }catch(e){ /* an unreadable local copy is not worth losing the page over */ }
 }
 
-function rememberFood(entry){
+// Returns whether the saved list actually moved, so a plain edit does not
+// write to the store for nothing.
+function rememberFood(entry, keep){
+  const at = state.foods.findIndex(f => (f.name || '').toLowerCase() === entry.name.toLowerCase());
+  if(!keep){
+    if(at < 0) return false;
+    state.foods.splice(at, 1);
+    return true;
+  }
   const food = {name:entry.name, notes:entry.notes};
   for(const k of MACROS) food[k] = num(entry[k]);
-  const at = state.foods.findIndex(f => (f.name || '').toLowerCase() === entry.name.toLowerCase());
-  if(at >= 0) state.foods[at] = food; else state.foods.push(food);
+  if(at >= 0){
+    if(JSON.stringify(state.foods[at]) === JSON.stringify(food)) return false;
+    state.foods[at] = food;
+  } else state.foods.push(food);
+  return true;
 }
+
+/* ---------- macro targets ---------- */
+function renderTargets(){
+  for(const set of ['training','rest']){
+    $('t-' + set).innerHTML = MACROS.map(k => {
+      const [lo,hi] = state.targets[set][k];
+      return `<div class="trow"><span>${esc(MACRO_NAME[k])}</span>` +
+        `<input type="number" min="0" step="any" data-t="${set}|${k}|0" value="${lo}" aria-label="${esc(MACRO_NAME[k])} lowest">` +
+        `<span class="to">to</span>` +
+        `<input type="number" min="0" step="any" data-t="${set}|${k}|1" value="${hi}" aria-label="${esc(MACRO_NAME[k])} highest">` +
+        `</div>`;
+    }).join('');
+  }
+}
+
+$('open-goals').onclick = () => { renderTargets(); $('goals').showModal(); };
+$('goals-close').onclick = () => $('goals').close();
+$('goals-reset').onclick = () => { state.targets = copyTargets(DEFAULT_TARGETS); renderTargets(); };
+
+$('goals-form').onsubmit = async e => {
+  e.preventDefault();
+  for(const el of $('goals-form').querySelectorAll('[data-t]')){
+    const [set, k, end] = el.dataset.t.split('|');
+    state.targets[set][k][Number(end)] = num(el.value);
+  }
+  // A range typed the wrong way round is a slip, not an instruction.
+  for(const set of ['training','rest']) for(const k of MACROS){
+    const r = state.targets[set][k];
+    if(r[1] && r[1] < r[0]) r.reverse();
+  }
+  render();
+  $('goals').close();
+  try{ await persistTargets(); toast('Targets saved'); }
+  catch(err){ toast('Targets not saved: ' + ((err && (err.code || err.message)) || 'unknown'), true); }
+};
+
+/* ---------- the recurring foods ---------- */
+function renderPantry(){
+  const n = state.foods.length;
+  $('pantry-hint').textContent = n
+    ? n + ' saved. Changing one here changes what fills in next time, not anything already logged.'
+    : 'Nothing saved yet.';
+  $('pantry-list').innerHTML = n
+    ? state.foods.map(f => `<li class="pfood">
+        <input class="pname" value="${esc(f.name || '')}" maxlength="250" aria-label="Name">
+        <div class="pmac">
+          ${MACROS.map(k => `<label class="pm"><span>${k === 'calories' ? 'kcal' : esc(k)}</span>` +
+            `<input type="number" min="0" step="any" class="p-${k}" value="${num(f[k])}" aria-label="${esc(MACRO_NAME[k])}"></label>`).join('')}
+          <button type="button" class="btn quiet pdrop">Remove</button>
+        </div>
+        <input class="pnotes" value="${esc(f.notes || '')}" placeholder="Notes" aria-label="Notes">
+      </li>`).join('')
+    : `<li class="empty">Tick “keep as a recurring food” when you log one and it lands here with its macros.</li>`;
+}
+
+$('open-pantry').onclick = () => { renderPantry(); $('pantry').showModal(); };
+$('pantry-close').onclick = () => $('pantry').close();
+$('pantry-list').onclick = e => {
+  const b = e.target.closest('.pdrop');
+  if(b) b.closest('.pfood').remove();      // gone once the list is saved
+};
+
+$('pantry-form').onsubmit = async e => {
+  e.preventDefault();
+  const next = [];
+  for(const row of $('pantry-list').querySelectorAll('.pfood')){
+    const name = row.querySelector('.pname').value.trim();
+    if(!name) continue;                    // a food with no name cannot be matched
+    const food = {name, notes: row.querySelector('.pnotes').value};
+    for(const k of MACROS) food[k] = num(row.querySelector('.p-' + k).value);
+    next.push(food);
+  }
+  state.foods = next;
+  refreshPool();
+  render();
+  $('pantry').close();
+  try{ await persistFoods(); toast('Recurring foods saved'); }
+  catch(err){ toast('Recurring foods not saved: ' + ((err && (err.code || err.message)) || 'unknown'), true); }
+};
 
 /* ---------- events ---------- */
 $('kinds').onclick = e => {
@@ -751,6 +1045,13 @@ $('log').onclick = e => {
       render();
     } else if(b.dataset.new){
       openSheet(b.dataset.new);
+    } else if(b.dataset.train){
+      const d = state.days[b.dataset.train];
+      if(d){
+        d.training = !isTraining(d);
+        render();
+        persistDay(d.id).catch(err => toast('Day type not saved: ' + ((err && (err.code || err.message)) || 'unknown'), true));
+      }
     }
     return;
   }
@@ -781,6 +1082,8 @@ function editEntry(dayId, entryId){
   $('notes').value = entry.notes || '';
   $('servings').value = entry.servings != null ? entry.servings : 1;
   for(const k of MACROS) $(k).value = entry[k] != null ? entry[k] : '';
+  filledFrom = entry.name.trim().toLowerCase();
+  $('keep').checked = state.foods.some(f => (f.name || '').toLowerCase() === filledFrom);
   $('sheet-title').textContent = 'Edit entry';
   $('cancel').hidden = false;
   $('remove').hidden = false;
@@ -825,11 +1128,11 @@ $('entry').onsubmit = async e => {
   const at = d.entries.findIndex(x => x.id === editing);
   if(at >= 0) d.entries[at] = entry; else d.entries.push(entry);
 
-  if(kind === 'Food') rememberFood(entry);
+  const libraryMoved = kind === 'Food' && rememberFood(entry, $('keep').checked);
   folded.delete(d.id);
   try{
     await persistDay(d.id);
-    persistFoods().catch(err => toast('Food list not saved: ' + ((err && (err.code || err.message)) || 'unknown'), true));
+    if(libraryMoved) persistFoods().catch(err => toast('Food list not saved: ' + ((err && (err.code || err.message)) || 'unknown'), true));
   }catch(err){
     toast('Not saved: ' + ((err && (err.code || err.message)) || 'unknown error'), true);
     render();
@@ -894,6 +1197,15 @@ applyKind();
       const body = snap.data();
       state.foods = body && Array.isArray(body.foods) ? body.foods.map(f => ({...f})) : [];
       refreshPool();
+      if($('pantry').open) renderPantry();
+    }, () => {});
+    db.doc('settings/targets').onSnapshot(snap => {
+      const body = snap.data();
+      // A store with nothing saved yet should not wipe the doctor's numbers.
+      if(!body || !body.targets) return;
+      state.targets = copyTargets({...DEFAULT_TARGETS, ...body.targets});
+      render();
+      if($('goals').open) renderTargets();
     }, () => {});
   } else {
     loadLocal();
