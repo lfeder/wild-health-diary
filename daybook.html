@@ -767,6 +767,7 @@ const ESTIMATE_RULES = [
   '- calories, protein, carbs and fat are numbers for ONE serving. Macros are in grams.',
   '- servings is how many of that serving the text describes. Usually 1.',
   '- name is a short title in the diarist’s own words.',
+  '- Read a name as one food when it is one: a variety or dish ("apple banana", "sweet potato", "egg roll") is a single thing, not a list of two. Only split it into separate foods when it is plainly a list ("apple and a banana", "eggs, toast").',
   '- assumptions is one or two sentences naming the portions and ingredients you assumed, so they can be corrected.',
   '- Use any quantity the text states. Where none is stated, assume a typical portion and say so in assumptions.'
 ].join('\n');
@@ -774,6 +775,7 @@ const ESTIMATE_RULES = [
 async function estimateMacros(){
   const text = $('name').value.trim();
   if(!text){ $('name').focus(); return; }
+  closeSuggest();
   const extra = typedNotes();
   $('estimate').disabled = true;
   showEstimateNote('Asking Claude…', false);
@@ -1002,6 +1004,9 @@ $('kinds').onclick = e => {
 };
 
 $('name').addEventListener('input', () => { fillFromLibrary(); openSuggest(); });
+// Tapping anywhere else (Estimate, the macros) is a sign the name is settled,
+// so the list must not linger looking like a second copy of it.
+$('name').addEventListener('blur', closeSuggest);
 $('name').addEventListener('keydown', e => {
   if($('suggest').hidden) return;
   if(e.key === 'ArrowDown'){ e.preventDefault(); highlight(active + 1); }
